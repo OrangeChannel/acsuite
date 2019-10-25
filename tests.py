@@ -115,6 +115,94 @@ class ACsuiteTests(unittest.TestCase):
         self.assertEqual(ac._negative_to_positive([0], [-12], self.BLANK_CLIP), ([0], [88]), '')
         self.assertEqual(ac._negative_to_positive([-12], [0], self.BLANK_CLIP), ([88], [100]), '')
 
+    def test_octrim(self):
+        with self.assertRaisesRegex(TypeError, 'must be a list'):
+            ac.octrim(self.BLANK_CLIP, 'test', '', '', '')
+        with self.assertRaisesRegex(TypeError, 'all be tuples'):
+            ac.octrim(self.BLANK_CLIP, [(1), (1, 2, '')], '', '', '')
+        with self.assertRaisesRegex(ValueError, 'at most'):
+            ac.octrim(self.BLANK_CLIP, [(1, 2, '', ''), (1, 2, '')], '', '', '')
+        with self.assertRaisesRegex(TypeError, 'have 2 ints'):
+            ac.octrim(self.BLANK_CLIP, [(7, '', ''), (8, 9, '')], '', '', '')
+        with self.assertRaisesRegex(TypeError, 'expected str'):
+            ac.octrim(self.BLANK_CLIP, [(7, 8, 9)], '', '', '')
+        with self.assertRaisesRegex(TypeError, 'expected int in pos 0'):
+            ac.octrim(self.BLANK_CLIP, [('', '')], '', '', '')
+        with self.assertRaisesRegex(TypeError, 'str in pos 1'):
+            ac.octrim(self.BLANK_CLIP, [(7, 8)], '', '', '')
+        with self.assertRaisesRegex(ValueError, 'at least 2 elements'):
+            ac.octrim(self.BLANK_CLIP, [(9,)], '', '', '')
+
+        with self.assertRaisesRegex(TypeError, 'all be tuples'):
+            ac.octrim(self.BLANK_CLIP, ['', ('',)], '', '', '', names=False)
+        with self.assertRaisesRegex(ValueError, 'at most 2 ints'):
+            ac.octrim(self.BLANK_CLIP, [(3, 4, 5)], '', '', '', names=False)
+        with self.assertRaisesRegex(TypeError, 'have 2 ints'):
+            ac.octrim(self.BLANK_CLIP, [('', '')], '', '', '', names=False)
+        with self.assertRaisesRegex(TypeError, 'expected int in pos 0'):
+            ac.octrim(self.BLANK_CLIP, [('',)], '', '', '', names=False)
+        with self.assertRaisesRegex(ValueError, 'last trim'):
+            ac.octrim(self.BLANK_CLIP, [(9, 10), (8,)], '', '', '', names=False)
+
+        ac.__init__()
+        self.assertEqual(ac.octrim(self.BLANK_CLIP,
+                                   [(1, 2, 'A'), (4, 7, 'B'), (8, 9, 'C'), (11, 13, 'D'), (14, 17, 'E'), (18, 20, 'F'),
+                                    (24, 30, 'G'), (33, 35, 'H'), (36, 41, 'J')], '', '', '', debug=True)['cut_s'],
+                         [1, 4, 11, 24, 33])
+
+        ac.__init__()
+        self.assertEqual(ac.octrim(self.BLANK_CLIP,
+                                   [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'),
+                                    (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], '', '', '', debug=True)['cut_s'],
+                         [1, 4, 11, 24, 33])
+
+        ac.__init__()
+        self.assertEqual(ac.octrim(self.BLANK_CLIP,
+                                   [(1, 2, 'A'), (4, 7, 'B'), (8, 9, 'C'), (11, 13, 'D'), (14, 17, 'E'), (18, 20, 'F'),
+                                    (24, 30, 'G'), (33, 35, 'H'), (36, 41, 'J')], '', '', '', debug=True)['cut_e'],
+                         [3, 10, 21, 31, 42])
+
+        ac.__init__()
+        self.assertEqual(ac.octrim(self.BLANK_CLIP,
+                                   [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'),
+                                    (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], '', '', '', debug=True)['cut_e'],
+                         [3, 10, 21, 31, 42])
+
+        ac.__init__()
+        self.assertEqual(ac.octrim(self.BLANK_CLIP,
+                                   [(1, 2, 'A'), (4, 7, 'B'), (8, 9, 'C'), (11, 13, 'D'), (14, 17, 'E'), (18, 20, 'F'),
+                                    (24, 30, 'G'), (33, 35, 'H'), (36, 41, 'J')], '', '', '', debug=True)['chap_s_ts'],
+                         ['00:00:00.000', '00:00:00.400', '00:00:01.200', '00:00:01.600',
+                          '00:00:02.200', '00:00:03.000', '00:00:03.600', '00:00:05.000',
+                          '00:00:05.600'])
+
+        ac.__init__()
+        self.assertEqual(ac.octrim(self.BLANK_CLIP,
+                                   [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'),
+                                    (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], '', '', '', debug=True)['chap_s_ts'],
+                         ['00:00:00.000', '00:00:00.400', '00:00:01.200', '00:00:01.600',
+                          '00:00:02.200', '00:00:03.000', '00:00:03.600', '00:00:05.000',
+                          '00:00:05.600'])
+
+        ac.__init__()
+        self.assertEqual(ac.octrim(self.BLANK_CLIP,
+                                   [(1, 2, 'A'), (4, 7, 'B'), (8, 9, 'C'), (11, 13, 'D'), (14, 17, 'E'), (18, 20, 'F'),
+                                    (24, 30, 'G'), (33, 35, 'H'), (36, 41, 'J')], '', '', '', debug=True)['chap_e_ts'][
+                             -1], '00:00:06.800')
+
+        ac.__init__()
+        self.assertEqual(ac.octrim(self.BLANK_CLIP,
+                                   [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'),
+                                    (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], '', '', '', debug=True)['chap_e_ts'][-1],
+                         '00:00:06.800')
+
+    def test_chapter_timings(self):
+        self.assertEqual(ac._chapter_timings([1, 5, 11, 13], [3, 8, 12, 15]), ([0, 3, 7, 9], [2, 6, 8, 12]))
+
+    def test_combine(self):
+        self.assertEqual(ac._combine([0, 5, 9, 12, 17, 19, 25], [2, 8, 11, 14, 18, 20, 27], self.BLANK_CLIP),
+                         ([0, 5, 17, 25], [3, 15, 21, 28]))
+
 
 if __name__ == '__main__':
     unittest.main()

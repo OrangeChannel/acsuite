@@ -1,11 +1,12 @@
 """
 Replacement for @AzraelNewtype's audiocutter.py:  https://github.com/AzraelNewtype/audiocutter
 - eztrim() works directly with VapourSynth slicing syntax
-- trim() is currently WIP, but should allow for easy ordered chapters creation
+- octrim() allows for easy ordered chapters creation
 """
 
 import re
 import shlex
+import string
 import sys
 from fractions import Fraction
 from subprocess import call, check_output
@@ -20,6 +21,7 @@ class AC(object):
     def __init__(self):
         """if mkvmerge is not in your PATH, add an absolute path to the executable here"""
         self.mkvmerge = r'mkvmerge'
+        self.mkvtoolnixgui = r'mkvtoolnix-gui'
         self.s = []
         self.e = []
         self.cut_ts_s = []
@@ -28,127 +30,7 @@ class AC(object):
         self.clip = None
         self.audio_file = None
         self.outfile = None
-
-    # def trim(self, clip: vs.VideoNode = None, trims: list = None, audio_file: str = None, outfile: str = None,
-    #          debug: str = None):
-    #     """
-    #     Main trimming function for creating an ordered-chapters release.
-    #     Trims should be the start frame of each chapter, followed by the ending frame number of that chapter,
-    #     followed by a name.
-    #
-    #     These frame numbers should all be from the un-cut clip!!
-    #
-    #     * The syntax is different from VS/python slicing, end IS inclusive *
-    #
-    #     :param clip: vs.VideoNode:  clip that is being sliced
-    #     :param trims: list:  a list of 3-tuples
-    #
-    #         [(start_frame, end_frame, 'chapter_name'), ...]
-    #         the start frame is ALWAYS inclusive
-    #         the end frame is also inclusive, but will auto-fix overlaps with the next trim's start frame
-    #             the end frame can also be '-1' if the chapters are continuous
-    #
-    #         VapourSynth slicing clip[1:20]+clip[45:77] can be represented as
-    #
-    #         [(1, 19, 'intro'), (45, 76, 'outro')]
-    #
-    #         or as
-    #
-    #         [(1, -1, 'A'), (15, 19, 'B'), (45, 55, 'C'), (55, 76, 'D')]
-    #         with chapter 'A' being frames [ 1,14] inclusive
-    #              chapter 'B' being frames [15,19] inclusive
-    #              chapter 'C' being frames [45,54] inclusive
-    #              chapter 'D' being frames [55,76] inclusive
-    #
-    #
-    #     :param audio_file: string:  path to pre-extracted audio file -- '/BDMV/STREAM/00004.wav'
-    #
-    #         [(1, 19, 'intro'), (45, 76, 'outro')] will result in audio cut at the following timecodes:
-    #
-    #         [1, 20) ++ [45, 77)
-    #
-    #     :param outfile: string:  cut audio filename with extension -- 'Cut.wav'
-    #     :param debug: int:  0 disables, 1 runs full process, 2 stops before __write_chapters, 3 prints info
-    #
-    #     OUTPUT:  outputs the cut audio file, and a plaintext file 'Cut.txt' for chapter timings in the script directory
-    #
-    #     """
-    #
-    #     if None in (clip, trims, audio_file, outfile):
-    #         raise TypeError('trim: function requires a clip, a list of trims, an audio_file path, and an outfile')
-    #     if (not isinstance(trims, (list, tuple))):
-    #         raise TypeError('trim: trims must be a list of 3-tuples')
-    #     if len(trims) < 2:
-    #         raise ValueError('trim: there must be at least two trims')
-    #     for trim in trims:
-    #         if (not isinstance(trim, (list, tuple))):
-    #             raise TypeError('trim: the trim "{}" is not a 3-tuple'.format(trim))
-    #         if len(trim) < 3:
-    #             raise ValueError('trim: the trim "{}" must have 3 elements'.format(trim))
-    #         if type(trim[2]) != str:
-    #             raise TypeError('trim: the third element in the trim "{}" is not a string'.format(trim))
-    #
-    #     self.clip = clip
-    #     num_frames = 100 if debug == 3 else clip.num_frames
-    #     self.audio_file = audio_file
-    #     self.outfile = outfile
-    #     mod_s = []
-    #     mod_e = []
-    #     for s, e, n in trims:
-    #         self.s.append(int(s))
-    #         self.e.append(int(e))
-    #         self.chapter_names.append(n)
-    #
-    #     if not self.__check_ordered(self.s, self.e):
-    #         raise ValueError('trim: the tuples are not ordered correctly')
-    #
-    #     if self.e[-1] == 0 or self.e[-1] >= num_frames:
-    #         if debug == 3:
-    #             print('last element of e is {}, so being set to {}'.format(self.e[-1], num_frames - 1))
-    #         self.e[-1] = num_frames - 1
-    #
-    #     if debug == 3:
-    #         print('s: {}'.format(self.s))
-    #         print('e: {}'.format(self.e))
-    #         print('names: {}'.format(self.chapter_names))
-    #
-    #     mod_s.append(self.s[0])
-    #
-    #     for i in range(1, len(self.e)):
-    #         if self.e[i - 1] not in (-1, self.s[i], self.s[i] - 1):
-    #             """if the ending frame is neither -1, the next start frame, or one less, append (+=1) to modified end list"""
-    #             mod_e.append(self.e[i - 1] + 1)
-    #             if debug == 3:
-    #                 print('{} added to mod_e'.format(self.e[i - 1] + 1))
-    #                 print(mod_e)
-    #         else:
-    #             self.e[i - 1] = self.s[i] - 1
-    #             if debug == 3:
-    #                 print('self.e[{}] is now {}'.format(i - 1, self.s[i] - 1))
-    #                 print('self.e: {}'.format(self.e))
-    #         if self.s[i] not in (self.e[i - 1], self.e[i - 1] + 1):
-    #             if self.e[i - 1] != -1:
-    #                 mod_s.append(self.s[i])
-    #                 if debug == 3:
-    #                     print('{} added to mod_s'.format(self.s[i]))
-    #                     print(mod_s)
-    #
-    #     mod_e.append(self.e[-1] + 1)
-    #     if debug == 3:
-    #         print('{} added to mod_e'.format(self.e[-1] + 1))
-    #         print(mod_e)
-    #
-    #     for i in mod_s:
-    #         self.cut_ts_s.append(self.__f2ts(i))
-    #     for i in mod_e:
-    #         self.cut_ts_e.append(self.__f2ts(i))
-    #
-    #     if debug == 2:
-    #         return {'s':        self.s, 'e': self.e, 'names': self.chapter_names, 'mod_s': mod_s, 'mod_e': mod_e,
-    #                 'cut_ts_s': self.cut_ts_s, 'cut_ts_e': self.cut_ts_e}
-    #
-    #     self.__write_chapters(outfile)
-    #     self.__cut_audio()
+        self.chapter_file = None
 
     def eztrim(self, clip: vs.VideoNode, trims: Iterable, audio_file: str, outfile: str, debug: bool = False):
         """
@@ -179,7 +61,7 @@ class AC(object):
 
         :param audio_file: str:  '/path/to/audio_file.wav'
         :param outfile: str:  can be either a filename 'out.wav' or a full path '/path/to/out.wav'
-        :param debug:  bool: used for testing, leave blank
+        :param debug: bool:  used for testing, leave blank
 
         OUTPUTS: a cut/spliced audio file in either the script's directoy or the path specified with 'outfile'
         """
@@ -242,10 +124,208 @@ class AC(object):
 
         self._cut_audio()
 
+    def octrim(self, clip: vs.VideoNode, trims: list, audio_file: str, outfile: str, chapter_file: str,
+               gui: bool = True, names: bool = True, debug: bool = False):
+        """
+        Trimming function designed for ordered-chapters creation.
+        ALWAYS uses frame numbers from un-cut/un-trimmed src video.
+
+        A VapourSynth clip with the following information:
+        chapter 'A' is frame 1 through 2 inclusive
+        chapter 'B' is frame 4 through 7 inclusive
+        chapter 'C': 8 - 9        chapter 'D': 11 - 13      chapter 'E': 14 - 17
+        chapter 'F': 18 - 20      chapter 'G': 24 - 30      chapter 'H': 33 - 35
+        chapter 'J': 36 - 41
+
+        Can be entered as
+
+        * trims=[(1,2,'A'),(4,7,'B'),(8,9,'C'),(11,13,'D'),(14,17,'E'),(18,20,'F'),(24,30,'G'),(33,35,'H'),(36,41,'J')]
+
+        or can be simplified to:
+
+        ** trims=[(1,2,'A'),(4,'B'),(8,9,'C'),(11,'D'),(14,'E'),(18,20,'F'),(24,30,'G'),(33,'H'),(36,41,'J')]
+
+        by leaving out the ending frame if chapters are continuous (only need the start frame of the next chapter)
+
+        This will cut audio (inclusive) from frames:
+
+        [1,2]+[4,9]+[11,20]+[24,30]+[33,41]
+
+        or using timecodes of the following frames:
+        [1,3],  [4,10],  [11,21],  [24,31],  [33,42]
+
+        resulting in a (2-1+1)+(9-4+1)+(20-11+1)+(30-24+1)+(41-33+1) = 34 frame long clip
+
+        This will leave us with chapters starting at (trimmed) frame:
+        'A': 0,     'B': 2,     'C': 6
+        'D': 8,     'E': 11,    'F': 15
+        'G': 18     'H': 25     'J': 28
+        'DELETE THIS': 34 (explained on the README)
+
+        :param clip: vs.VideoNode:  needed for framerate for audio/chapter timecodes
+        :param trims: list:  must be a list of 2 or 3-tuples in the format
+            [(start,end,'name'),...]
+            or
+            [(start,'name'),...,(start,end,'name')]
+
+            Only need to specify start frame if chapter is continuous (see example above).
+                Last tuple must specify end frame.
+            If specifying end frame, it is ALWAYS inclusive.
+
+        :param audio_file: str:  '/path/to/audio_file.wav'
+        :param outfile: str:  can be either a filename 'out.wav' or a full path '/path/to/out.wav'
+        :param chapter_file: str:  can be either a filename 'chap.txt' or a full path '/path/to/chap.txt'
+        :param gui: bool:  whether or not to auto-open MKVToolNix GUI with chapter timings
+        :param names: bool:  whether or not to use specified names or auto-generated
+            if False, you do not need to specify chapter names:
+
+            ? param trims:
+                if False, must be a list of either 1 or 2-tuples in the format
+                [(start,end),...]
+                or
+                [(start,),...,(start,end)]
+
+                Only need to specify start frame if chapter is continuous (see example above).
+                    Last tuple must specify end frame.
+                If specifying end frame, it is ALWAYS inclusive.
+
+        :param debug: bool:  used for testing, leave blank
+
+        OUTPUTS: * a cut/spliced audio file in either the script's directoy or the path specified with 'outfile'
+                 * a plaintext file with chapter timings
+                 ? can open MKVToolNix GUI automatically if 'gui' is True
+        """
+
+        if not isinstance(trims, list):
+            raise TypeError('octrim: trims must be a list [] of tuples')
+
+        if names:
+            for trim in trims:
+                if type(trim) != tuple:
+                    raise TypeError('octrim: trims must all be tuples (if only using start frame, enter as (int,)')
+                if len(trim) > 3:
+                    raise ValueError('octrim: trim {} must have at most 2 ints and 1 string'.format(trim))
+                elif len(trim) == 3:
+                    check_int = lambda a: isinstance(a, int)
+                    for i in range(2):
+                        if not check_int(trim[i]):
+                            raise TypeError('octrim: trim {} must have 2 ints'.format(trim))
+                    if not isinstance(trim[2], str):
+                        raise TypeError('octrim: expected str in pos 2 in trim {}'.format(trim))
+                elif len(trim) == 2:
+                    if not isinstance(trim[0], int):
+                        raise TypeError('octrim: expected int in pos 0 in trim {}'.format(trim))
+                    if not isinstance(trim[1], str):
+                        raise TypeError('octrim: expected str in pos 1 in trim {}'.format(trim))
+                else:
+                    raise ValueError('octrim: trim {} must be at least 2 elements long'.format(trim))
+
+            if len(trims[-1]) != 3:
+                raise ValueError('octrim: the last trim, {}, must have 3 elements'.format(trims[-1]))
+
+        else:
+            for trim in trims:
+                if type(trim) != tuple:
+                    raise TypeError('octrim: trims must all be tuples (if only using start frame, enter as (int,))')
+                if len(trim) > 2:
+                    raise ValueError('octrim: trim {} must have at most 2 ints'.format(trim))
+                elif len(trim) == 2:
+                    check_int = lambda a: isinstance(a, int)
+                    for i in range(2):
+                        if not check_int(trim[i]):
+                            raise TypeError('octrim: trim {} must have 2 ints'.format(trim))
+                elif len(trim) == 1:
+                    if not isinstance(trim[0], int):
+                        raise TypeError('octrim: expected int in pos 0 in trim {}')
+            if len(trims[-1]) != 2:
+                raise ValueError('octrim: the last trim, {}, must have 2 ints'.format(trims[-1]))
+
+        self.clip = clip
+        self.audio_file = audio_file
+        self.outfile = outfile
+        self.chapter_file = chapter_file
+
+        [self.s.append(i[0]) for i in trims]
+
+        if names:
+            for k, v in enumerate(trims):
+                if type(v[1]) == str:
+                    self.e.append(self.s[k + 1] - 1)
+                else:
+                    self.e.append(v[1])
+        else:
+            for k, v in enumerate(trims):
+                if len(v) == 1:
+                    self.e.append(self.s[k + 1] - 1)
+                else:
+                    self.e.append(v[1])
+        if names:
+            for trim in trims:
+                if len(trim) == 2:
+                    self.chapter_names.append(trim[1])
+                else:
+                    self.chapter_names.append(trim[2])
+
+        cut_s, cut_e = self._combine()
+
+        if self._check_ordered():
+            for i in cut_s:
+                self.cut_ts_s.append(self._f2ts(i))
+            for i in cut_e:
+                self.cut_ts_e.append(self._f2ts(i))
+        else:
+            raise ValueError('the trims are not logical')
+
+        chap_s, chap_e = self._chapter_timings()
+
+        chap_s_ts = [self._f2ts(i, precision=3) for i in chap_s]
+        chap_e_ts = [self._f2ts(i, precision=3) for i in chap_e]
+
+        if debug:
+            return {'cut_s': cut_s, 'cut_e': cut_e, 'chap_s_ts': chap_s_ts, 'chap_e_ts': chap_e_ts}
+
+        self._cut_audio()
+        self._write_chapters(chap_s_ts, chap_e_ts)
+
+        if gui:
+            cmd = '{} --edit-chapters "{}"'
+            args = shlex.split(cmd.format(self.mkvtoolnixgui, self.chapter_file))
+            call(args)
+
+    def _chapter_timings(self, a: list = None, b: list = None):
+        s = a if a else self.s
+        e = b if b else self.e
+
+        index = 1
+        diff = 0
+
+        if s[0] > 0:
+            idiff = s[0]
+            s = [i - idiff for i in s]
+            e = [i - idiff for i in e]
+
+        while index < len(s):
+            for i in range(index, len(s)):
+                if s[i] != e[i - 1] + 1:
+                    diff = s[i] - e[i - 1] - 1
+                    index = i
+                    break
+
+                diff = 0
+                index += 1
+
+            for i in range(index, len(s)):
+                s[i] -= diff
+                e[i] -= diff
+
+        e[-1] += 1
+
+        return s, e
+
     def _check_ordered(self, a: list = None, b: list = None):
         """checks if lists follow logical python slicing 4,-10 on a 0-99 (100 fr) >> [4:90]"""
-        a = self.s if self.s else a
-        b = self.e if self.e else b
+        a = a if a else self.s
+        b = b if b else self.e
 
         if not all(a[i] < a[i + 1] for i in range(len(a) - 1)):
             """makes sure list a is ordered L to G, without overlaps"""
@@ -260,6 +340,40 @@ class AC(object):
             return False
 
         return True
+
+    def _combine(self, a: list = None, b: list = None, tclip: vs.VideoNode = None):
+        s = a if a else self.s
+        e = b if b else self.e
+
+        e = [i + 1 for i in e]
+
+        s, e = self._negative_to_positive(s, e, tclip)
+
+        c_s = []
+        c_e = []
+
+        for i in range(len(s)):
+            if i == 0:
+                c_s.append(s[i])
+                if e[i] != s[i + 1]:
+                    c_e.append(e[i])
+                    continue
+                else:
+                    continue
+            elif i < len(s) - 1:
+                if s[i] != e[i - 1]:
+                    c_s.append(s[i])
+                if e[i] != s[i + 1]:
+                    c_e.append(e[i])
+                    continue
+                else:
+                    continue
+            elif i == len(s) - 1:
+                if s[i] != e[i - 1]:
+                    c_s.append(s[i])
+                c_e.append(e[i])
+
+        return c_s, c_e
 
     def _cut_audio(self):
         ts_cmd = self.mkvmerge + '{2} --split parts:'
@@ -293,7 +407,7 @@ class AC(object):
             print(args)
             exit("Failed to execute mkvmerge: {0:d}".format(cut_exec))
 
-    def _f2ts(self, f: int, tclip: vs.VideoNode = None):
+    def _f2ts(self, f: int, tclip: vs.VideoNode = None, precision: int = 9):
         if self.clip:
             n = self.clip.fps_num
             d = self.clip.fps_den
@@ -303,17 +417,21 @@ class AC(object):
         else:
             raise ValueError('_f2ts: clip needs to be specified')
 
-        t = round(10 ** 9 * f * Fraction(d, n))
-        s = t / 10 ** 9
+        t = round(10 ** precision * f * Fraction(d, n)) if precision > 3 else round(
+            10 ** precision * f * Fraction(d, n) + .5)
+        s = t / 10 ** precision
         m = s // 60
         s = s % 60
         h = m // 60
         m = m % 60
 
-        return '{:02.0f}:{:02.0f}:{:012.9f}'.format(h, m, s)
+        if precision == 3:
+            return '{:02.0f}:{:02.0f}:{:06.3f}'.format(h, m, s)
+        else:
+            return '{:02.0f}:{:02.0f}:{:012.9f}'.format(h, m, s)
 
     def _negative_to_positive(self, a: list, b: list, tclip: vs.VideoNode = None):
-        num_frames = self.clip.num_frames if self.clip else tclip.num_frames
+        num_frames = tclip.num_frames if tclip else self.clip.num_frames
         positive_a = []
         positive_b = []
 
@@ -334,84 +452,26 @@ class AC(object):
 
         return positive_a, positive_b
 
-    # def __write_chapters(self, outfile: str = None, debug: str = None):
-    #     if not debug:
-    #         fn, e = outfile.split('.')
-    #         fn += '.txt'
-    #
-    #     index = 1
-    #     diff = 0
-    #
-    #     if self.s[0] > 0:
-    #         idiff = self.s[0]
-    #         if debug == 3:
-    #             print('fist frame is not 0, shifting all frames backwards by {}'.format(idiff))
-    #         for k, v in enumerate(self.s):
-    #             self.s[k] -= idiff
-    #         for k, v in enumerate(self.e):
-    #             self.e[k] -= idiff
-    #
-    #         if debug == 3:
-    #             print('s: {}'.format(self.s))
-    #             print('e: {}'.format(self.e))
-    #
-    #     while index < len(self.e):
-    #         if debug == 3:
-    #             print('starting index: {}'.format(index))
-    #         for i in range(index, len(self.e)):
-    #             if self.s[i] != self.e[i - 1] + 1:
-    #                 if debug == 3:
-    #                     print('s[{}] was different than e[{}] + 1'.format(i, i - 1))
-    #                 diff = self.s[i] - self.e[i - 1] - 1
-    #                 index = i
-    #                 if debug == 3:
-    #                     print('diff is now {}, index is now {}'.format(diff, index))
-    #                 break
-    #             if debug == 3:
-    #                 print('s[{}] was same as e[{}] + 1'.format(i, i - 1))
-    #
-    #             diff = 0
-    #             index += 1
-    #             if debug == 3:
-    #                 print('diff is now {}, index is now {}'.format(diff, index))
-    #
-    #         for i in range(index, len(self.e)):
-    #             if debug == 3:
-    #                 print('shifting all frames starting with [{}] to account for diff ({})'.format(index, diff))
-    #                 print('s: {}'.format(self.s))
-    #                 print('e: {}'.format(self.e))
-    #             self.s[i] -= diff
-    #             self.e[i] -= diff
-    #             if debug == 3:
-    #                 print('new s: {}'.format(self.s))
-    #                 print('new e: {}'.format(self.e))
-    #     chap_ts_s = []
-    #     chap_ts_e = []
-    #
-    #     for i in self.s:
-    #         chap_ts_s.append(self.__f2ts(i))
-    #         chap_ts_e.append('')
-    #
-    #     if debug == 3:
-    #         print('chap_ts_s: {}'.format(chap_ts_s))
-    #         print('chap_ts_e: {}'.format(chap_ts_e))
-    #
-    #     chap_ts_e[-1] = self.__f2ts(self.e[-1] + 1)
-    #
-    #     if debug == 3:
-    #         print('chap_ts_e[-1] is now {}'.format(chap_ts_e[-1]))
-    #
-    #     lines = []
-    #     for i in range(len(chap_ts_e)):
-    #         lines.append('{:<12}    {}    {}'.format(self.chapter_names[i], chap_ts_s[i], chap_ts_e[i]))
-    #
-    #     if not debug:
-    #         text_file = open(fn, 'w')
-    #         for i in lines:
-    #             text_file.write(i + '\n')
-    #         text_file.close()
-    #     elif debug == 3:
-    #         for line in lines:
-    #             print(line)
-    #     elif debug == 1:
-    #         return
+    def _write_chapters(self, a: list, b: list, chapter_file: str = None):
+        chapter_file = chapter_file if chapter_file else self.chapter_file
+
+        if '.txt' not in chapter_file:
+            chapter_file += '.txt'
+
+        chapter_names = self.chapter_names if self.chapter_names else list(string.ascii_uppercase)
+        if not self.chapter_names:
+            chapter_names = ['Part ' + i for i in chapter_names]
+
+        lines = []
+
+        for i in range(len(a)):
+            lines.append('CHAPTER{:02d}={}'.format(i, a[i]))
+            lines.append('CHAPTER{:02d}NAME={}'.format(i, chapter_names[i]))
+
+        lines.append('CHAPTER{:02d}={}'.format(len(a), b[-1]))
+        lines.append('CHAPTER{:02d}NAME=DELETE ME'.format(len(a)))
+
+        text_file = open(chapter_file, 'w')
+        for i in lines:
+            text_file.write(i + '\n')
+        text_file.close()
