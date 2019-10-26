@@ -9,7 +9,7 @@ import shlex
 import string
 import sys
 from fractions import Fraction
-from subprocess import call, check_output
+import subprocess
 from typing import Iterable
 
 import vapoursynth as vs
@@ -292,7 +292,7 @@ class AC(object):
         if gui:
             cmd = '{} --edit-chapters "{}"'
             args = shlex.split(cmd.format(self.mkvtoolnixgui, self.chapter_file))
-            call(args)
+            subprocess.Popen(args)
 
     def _chapter_timings(self, a: list = None, b: list = None):
         s = a if a else self.s
@@ -378,14 +378,14 @@ class AC(object):
         return c_s, c_e
 
     def _cut_audio(self):
-        ts_cmd = self.mkvmerge + '{2} --split parts:'
+        ts_cmd = self.mkvmerge + '{delay} --split parts:'
 
         for s, e in zip(self.cut_ts_s, self.cut_ts_e):
             ts_cmd += '{}-{},+'.format(s, e)
 
         cut_cmd = ts_cmd[:-2]
 
-        ident = check_output([self.mkvmerge, '--identify', self.audio_file])
+        ident = subprocess.run([self.mkvmerge, '--identify', self.audio_file], check=True, stdout=subprocess.PIPE).stdout
         identre = re.compile(r'Track ID (\d+): audio')
         ret = (identre.search(ident.decode(sys.getfilesystemencoding())) if ident else None)
         tid = ret.group(1) if ret else '0'
@@ -398,16 +398,16 @@ class AC(object):
         else:
             delay_statement = ''
 
-        cut_cmd += ' -o "{1}" "{0}"'
+        cut_cmd += ' -o "{}" "{}"'.format(self.outfile, self.audio_file)
 
-        args = shlex.split(cut_cmd.format(self.audio_file, self.outfile, delay_statement))
-        cut_exec = call(args)
+        args = shlex.split(cut_cmd.format(delay=delay_statement))
+        cut_exec = subprocess.Popen(args).returncode
 
         if cut_exec == 1:
-            print("Mkvmerge exited with warnings: {0:d}".format(cut_exec))
+            print('Mkvmerge exited with warnings: 1')
         elif cut_exec == 2:
             print(args)
-            exit("Failed to execute mkvmerge: {0:d}".format(cut_exec))
+            exit('Failed to execute mkvmerge: 2')
 
     def _f2ts(self, f: int, tclip: vs.VideoNode = None, precision: int = 9):
         if self.clip:
