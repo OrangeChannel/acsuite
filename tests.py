@@ -47,34 +47,28 @@ class ACsuiteTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'are not logical'):
             ac.eztrim(self.BLANK_CLIP, trims=[(1, 10), (2, -95)], audio_file='', outfile='')
 
-        ac.__init__()
         self.assertEqual(
             ac.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
                       outfile='', debug=True)['s'], [3, 23, 48, 50, 90, 97])
 
-        ac.__init__()
         self.assertEqual(
             ac.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
                       outfile='', debug=True)['e'], [22, 40, 49, 80, 95, 100])
 
-        ac.__init__()
         self.assertEqual(
             ac.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
                       outfile='', debug=True)['cut_ts_s'],
             ['00:00:00.600000000', '00:00:04.600000000', '00:00:09.600000000', '00:00:10.000000000',
              '00:00:18.000000000', '00:00:19.400000000'])
 
-        ac.__init__()
         self.assertEqual(
             ac.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
                       outfile='', debug=True)['cut_ts_e'],
             ['00:00:04.400000000', '00:00:08.000000000', '00:00:09.800000000', '00:00:16.000000000',
              '00:00:19.000000000', '00:00:20.000000000'])
 
-        ac.__init__()
         self.assertEqual(ac.eztrim(self.BLANK_CLIP, (3, -13), audio_file='', outfile='', debug=True)['s'], [3])
 
-        ac.__init__()
         self.assertEqual(ac.eztrim(self.BLANK_CLIP, (3, -13), audio_file='', outfile='', debug=True)['e'], [87])
 
     def test_check_ordered(self):
@@ -144,31 +138,26 @@ class ACsuiteTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'last trim'):
             ac.octrim(self.BLANK_CLIP, [(9, 10), (8,)], '', '', '', names=False)
 
-        ac.__init__()
         self.assertEqual(ac.octrim(self.BLANK_CLIP,
                                    [(1, 2, 'A'), (4, 7, 'B'), (8, 9, 'C'), (11, 13, 'D'), (14, 17, 'E'), (18, 20, 'F'),
                                     (24, 30, 'G'), (33, 35, 'H'), (36, 41, 'J')], '', '', '', debug=True)['cut_s'],
                          [1, 4, 11, 24, 33])
 
-        ac.__init__()
         self.assertEqual(ac.octrim(self.BLANK_CLIP,
                                    [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'),
                                     (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], '', '', '', debug=True)['cut_s'],
                          [1, 4, 11, 24, 33])
 
-        ac.__init__()
         self.assertEqual(ac.octrim(self.BLANK_CLIP,
                                    [(1, 2, 'A'), (4, 7, 'B'), (8, 9, 'C'), (11, 13, 'D'), (14, 17, 'E'), (18, 20, 'F'),
                                     (24, 30, 'G'), (33, 35, 'H'), (36, 41, 'J')], '', '', '', debug=True)['cut_e'],
                          [3, 10, 21, 31, 42])
 
-        ac.__init__()
         self.assertEqual(ac.octrim(self.BLANK_CLIP,
                                    [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'),
                                     (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], '', '', '', debug=True)['cut_e'],
                          [3, 10, 21, 31, 42])
 
-        ac.__init__()
         self.assertEqual(ac.octrim(self.BLANK_CLIP,
                                    [(1, 2, 'A'), (4, 7, 'B'), (8, 9, 'C'), (11, 13, 'D'), (14, 17, 'E'), (18, 20, 'F'),
                                     (24, 30, 'G'), (33, 35, 'H'), (36, 41, 'J')], '', '', '', debug=True)['chap_s_ts'],
@@ -176,7 +165,6 @@ class ACsuiteTests(unittest.TestCase):
                           '00:00:02.200', '00:00:03.000', '00:00:03.600', '00:00:05.000',
                           '00:00:05.600'])
 
-        ac.__init__()
         self.assertEqual(ac.octrim(self.BLANK_CLIP,
                                    [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'),
                                     (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], '', '', '', debug=True)['chap_s_ts'],
@@ -184,13 +172,11 @@ class ACsuiteTests(unittest.TestCase):
                           '00:00:02.200', '00:00:03.000', '00:00:03.600', '00:00:05.000',
                           '00:00:05.600'])
 
-        ac.__init__()
         self.assertEqual(ac.octrim(self.BLANK_CLIP,
                                    [(1, 2, 'A'), (4, 7, 'B'), (8, 9, 'C'), (11, 13, 'D'), (14, 17, 'E'), (18, 20, 'F'),
                                     (24, 30, 'G'), (33, 35, 'H'), (36, 41, 'J')], '', '', '', debug=True)['chap_e_ts'][
                              -1], '00:00:06.800')
 
-        ac.__init__()
         self.assertEqual(ac.octrim(self.BLANK_CLIP,
                                    [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'),
                                     (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], '', '', '', debug=True)['chap_e_ts'][-1],

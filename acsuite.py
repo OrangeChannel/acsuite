@@ -65,6 +65,7 @@ class AC(object):
 
         OUTPUTS: a cut/spliced audio file in either the script's directoy or the path specified with 'outfile'
         """
+        self.__init__()
 
         single = False
 
@@ -195,6 +196,7 @@ class AC(object):
                  * a plaintext file with chapter timings
                  ? can open MKVToolNix GUI automatically if 'gui' is True
         """
+        self.__init__()
 
         if not isinstance(trims, list):
             raise TypeError('octrim: trims must be a list [] of tuples')
