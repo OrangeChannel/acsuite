@@ -15,13 +15,13 @@ __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
 
-import re
-import shlex
-import string
-import sys
 from fractions import Fraction
-import subprocess
-from typing import Iterable
+from re import compile, IGNORECASE
+from shlex import split
+from string import ascii_uppercase
+from subprocess import PIPE, Popen, run
+from sys import getfilesystemencoding
+from typing import List, Tuple, Union
 
 import vapoursynth as vs
 
@@ -302,8 +302,8 @@ class AC(object):
 
         if gui:
             cmd = '{} --edit-chapters "{}"'
-            args = shlex.split(cmd.format(self.mkvtoolnixgui, self.chapter_file))
-            subprocess.Popen(args)
+            args = split(cmd.format(self.mkvtoolnixgui, self.chapter_file))
+            Popen(args)
 
     def _chapter_timings(self, a: list = None, b: list = None):
         s = a if a else self.s
@@ -396,11 +396,11 @@ class AC(object):
 
         cut_cmd = ts_cmd[:-2]
 
-        ident = subprocess.run([self.mkvmerge, '--identify', self.audio_file], check=True, stdout=subprocess.PIPE).stdout
-        identre = re.compile(r'Track ID (\d+): audio')
-        ret = (identre.search(ident.decode(sys.getfilesystemencoding())) if ident else None)
+        ident = run([self.mkvmerge, '--identify', self.audio_file], check=True, stdout=PIPE).stdout
+        identre = compile(r'Track ID (\d+): audio')
+        ret = (identre.search(ident.decode(getfilesystemencoding())) if ident else None)
         tid = ret.group(1) if ret else '0'
-        delre = re.compile(r'DELAY ([-]?\d+)', flags=re.IGNORECASE)
+        delre = compile(r'DELAY ([-]?\d+)', flags=IGNORECASE)
         ret = delre.search(self.audio_file)
 
         delay = '{0}:{1}'.format(tid, ret.group(1)) if ret else None
@@ -411,8 +411,8 @@ class AC(object):
 
         cut_cmd += ' -o "{}" "{}"'.format(self.outfile, self.audio_file)
 
-        args = shlex.split(cut_cmd.format(delay=delay_statement))
-        cut_exec = subprocess.Popen(args).returncode
+        args = split(cut_cmd.format(delay=delay_statement))
+        cut_exec = Popen(args).returncode
 
         if cut_exec == 1:
             print('Mkvmerge exited with warnings: 1')
@@ -471,7 +471,7 @@ class AC(object):
         if '.txt' not in chapter_file:
             chapter_file += '.txt'
 
-        chapter_names = self.chapter_names if self.chapter_names else list(string.ascii_uppercase)
+        chapter_names = self.chapter_names if self.chapter_names else list(ascii_uppercase)
         if not self.chapter_names:
             chapter_names = ['Part ' + i for i in chapter_names]
 
