@@ -5,6 +5,8 @@ audiocutter(.py) replacement for VapourSynth.
 Allows for easy frame-based cutting/trimming/splicing of audio files
 from within a VapourSynth environment.
 
+## Functions:
+
 ### eztrim(self, clip, trims, audio_file, outfile, debug=False)
 ```py
 import vapoursynth as vs
@@ -57,3 +59,37 @@ The last chapter is simply a placeholder
 to determine the end timestamp for the last chapter specified in `trims`.
 After deriving the end timestamps,
 delete this chapter.
+
+---
+
+## Getting Started
+
+### Dependencies
+- [Python 3.7+](https://www.python.org/downloads/)
+- [VapourSynth](https://github.com/vapoursynth/vapoursynth/releases)
+- [MKVToolNix](https://mkvtoolnix.download/downloads.html)
+- MKVToolNix GUI (optional)
+
+### Installing
+
+#### Windows
+
+1. Navigate to your Python installation folder (i.e. `C:\Python\`).
+1. Download the `acsuite.py` file to the site-packages folder (`C:\Python\Lib\site-packages\`).
+
+#### Arch Linux
+
+Install the [AUR package](https://aur.archlinux.org/packages/vapoursynth-plugin-acsuite-git/) `vapoursynth-plugin-acsuite-git` with your favorite AUR helper:
+
+```sh
+yay -S vapoursynth-plugin-acsuite-git
+```
+
+## Help!
+
+Use python's builtin `help`: 
+
+```py
+help('acsuite')
+```
+
