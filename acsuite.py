@@ -1,7 +1,18 @@
+"""Frame-based cutting/trimming/splicing of audio files with VapourSynth.
+
+VapourSynth-based replacement for @AzraelNewtype's audiocutter.py:
+
+    https://github.com/AzraelNewtype/audiocutter
+
+Run "acsuite.AC().eztrim(clip, <trims>, <audio_file>, <outfile>)" with trims that follow VS/python slicing syntax.
+
+Run "acsuite.AC().octrim(clip, <trims>, <audio_file>, <outfile>, <chapter_file>)" for ordered-chapters creation.
 """
-Replacement for @AzraelNewtype's audiocutter.py:  https://github.com/AzraelNewtype/audiocutter
-- eztrim() works directly with VapourSynth slicing syntax
-- octrim() allows for easy ordered chapters creation
+__author__ = 'Dave <orangechannel@pm.me>'
+__date__ = '14 November 2019'
+
+__credits__ = """AzraelNewtype, for the original audiocutter.py.
+Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
 
 import re
