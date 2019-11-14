@@ -26,13 +26,10 @@ from typing import List, Tuple, Union
 import vapoursynth as vs
 
 
-# noinspection PyMissingOrEmptyDocstring
 class AC(object):
-
     def __init__(self):
-        """if mkvmerge is not in your PATH, add an absolute path to the executable here"""
-        self.mkvmerge = r'mkvmerge'
-        self.mkvtoolnixgui = r'mkvtoolnix-gui'
+        self.mkvmerge = r'mkvmerge'  # change to executable path if not already in PATH
+        self.mkvtoolnixgui = r'mkvtoolnix-gui'  # change to executable path if not already in PATH
         self.s = []
         self.e = []
         self.cut_ts_s = []
@@ -43,56 +40,54 @@ class AC(object):
         self.outfile = None
         self.chapter_file = None
 
-    def eztrim(self, clip: vs.VideoNode, trims: Iterable, audio_file: str, outfile: str, debug: bool = False):
-        """
-        Simpler trimming function that follows VS/python slicing syntax (end frame is NOT inclusive video-wise)
+    def eztrim(self, clip: vs.VideoNode, trims: Union[List[Tuple[int, int]], Tuple[int, int]], audio_file: str,
+               outfile: str, debug: bool = False):
+        """Simpler trimming function that follows VS/python slicing syntax (end frame is NOT inclusive).
 
-        A VapourSynth slice of a 100 frame clip ( clip[:100] ):
+        For a 100 frame long VapourSynth clip (clip[:100]):
 
-        * clip[3:22]+clip[23:40]+clip[48]+clip[50:-20]+clip[-10:-5]+clip[97:]
-
+        > clip[3:22]+clip[23:40]+clip[48]+clip[50:-20]+clip[-10:-5]+clip[97:]
         can be (almost) directly entered as
+        > trims=[(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)]
 
-        * trims=[(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)]
-
-        *** clip[3:-13]
-
+        >> clip[3:-13]
         can be directly entered as
+        >> trims=(3,-13)
 
-        *** trims=(3,-13)
+        :param clip: <vs.VideoNode> needed to determine framerate for audio timecodes, num_frames for negative indexing
+            :color family: ANY
+            :subsampling: ANY
+            :bit depth: ANY
 
-        :param clip: vs.VideoNode:  needed to determine framerate for audio timecodes, num_frames for negative indexing
-        :param trims: Iterable: either a list of 2-tuples, or a single tuple of 2 ints
+        :param trims: <Iterable> either a list of 2-tuples, or a single tuple of 2 ints
                 empty slicing must represented with a '0'
-                    * clip[:10]+clip[-5:]
-                    * trims=[(0,10), (-5,0)]
+                    > clip[:10]+clip[-5:]
+                    > trims=[(0,10), (-5,0)]
                 single frame slices must be represented as a normal slice
-                    * clip[15]
-                    * trims=(15,16)
+                    >> clip[15]
+                    >> trims=(15,16)
 
-        :param audio_file: str:  '/path/to/audio_file.wav'
-        :param outfile: str:  can be either a filename 'out.wav' or a full path '/path/to/out.wav'
-        :param debug: bool:  used for testing, leave blank
+        :param audio_file: <str> '/path/to/audio_file.wav'
+        :param outfile: <str> can be either a filename 'out.wav' or a full path '/path/to/out.wav'
+        :param debug: <bool> used for testing, leave blank (Default value = False)
 
         OUTPUTS: a cut/spliced audio file in either the script's directoy or the path specified with 'outfile'
         """
         self.__init__()
 
-        single = False
-
         if not isinstance(trims, (list, tuple)):
             raise TypeError('eztrim: trims must be a list of 2-tuples (or just one 2-tuple)')
 
+        single = False
+
         for trim in trims:
             if type(trim) == int:
-                """if the first element in trims is an int, we will assume it's a single tuple"""
-                single = True
+                single = True  # if the first element in trims is an int, we will assume it's a single tuple
                 if len(trims) != 2:
                     raise ValueError('eztrim: the trim must have 2 elements')
                 break
 
-            else:
-                """makes sure to error check only for multiple tuples"""
+            else:  # makes sure to error check only for multiple tuples
                 if not isinstance(trim, (list, tuple)):
                     raise TypeError('eztrim: the trim {} is not a tuple'.format(trim))
                 if len(trim) != 2:
@@ -136,37 +131,33 @@ class AC(object):
 
         self._cut_audio()
 
-    def octrim(self, clip: vs.VideoNode, trims: list, audio_file: str, outfile: str, chapter_file: str,
+    def octrim(self, clip: vs.VideoNode, trims: Union[
+        List[Union[Tuple[int, int, str], Tuple[int, str]]], List[Union[Tuple[int, int], Tuple[int]]]], audio_file: str,
+               outfile: str, chapter_file: str,
                gui: bool = True, names: bool = True, debug: bool = False):
-        """
-        Trimming function designed for ordered-chapters creation.
+        """Trimming function designed for ordered-chapters creation.
+
         ALWAYS uses frame numbers from un-cut/un-trimmed src video.
 
         A VapourSynth clip with the following information:
         chapter 'A' is frame 1 through 2 inclusive
-        chapter 'B' is frame 4 through 7 inclusive
-        chapter 'C': 8 - 9        chapter 'D': 11 - 13      chapter 'E': 14 - 17
-        chapter 'F': 18 - 20      chapter 'G': 24 - 30      chapter 'H': 33 - 35
-        chapter 'J': 36 - 41
+        chapter 'B':  4 -  7      chapter 'C':  8 -  9      chapter 'D': 11 - 13
+        chapter 'E': 14 - 17      chapter 'F': 18 - 20      chapter 'G': 24 - 30
+        chapter 'H': 33 - 35      chapter 'J': 36 - 41
 
         Can be entered as
-
-        * trims=[(1,2,'A'),(4,7,'B'),(8,9,'C'),(11,13,'D'),(14,17,'E'),(18,20,'F'),(24,30,'G'),(33,35,'H'),(36,41,'J')]
+        > trims=[(1,2,'A'),(4,7,'B'),(8,9,'C'),(11,13,'D'),(14,17,'E'),(18,20,'F'),(24,30,'G'),(33,35,'H'),(36,41,'J')]
 
         or can be simplified to:
-
-        ** trims=[(1,2,'A'),(4,'B'),(8,9,'C'),(11,'D'),(14,'E'),(18,20,'F'),(24,30,'G'),(33,'H'),(36,41,'J')]
-
-        by leaving out the ending frame if chapters are continuous (only need the start frame of the next chapter)
+        >> trims=[(1,2,'A'),(4,'B'),(8,9,'C'),(11,'D'),(14,'E'),(18,20,'F'),(24,30,'G'),(33,'H'),(36,41,'J')]
+        by leaving out the ending frame if chapters are continuous (only need the start frame of the next chapter).
 
         This will cut audio (inclusive) from frames:
-
         [1,2]+[4,9]+[11,20]+[24,30]+[33,41]
-
         or using timecodes of the following frames:
         [1,3],  [4,10],  [11,21],  [24,31],  [33,42]
 
-        resulting in a (2-1+1)+(9-4+1)+(20-11+1)+(30-24+1)+(41-33+1) = 34 frame long clip
+        resulting in a (3 - 1) + (10 - 4) + (21 - 11) + (31 - 24) + (42 - 33) = 34 frame long audio clip.
 
         This will leave us with chapters starting at (trimmed) frame:
         'A': 0,     'B': 2,     'C': 6
@@ -174,38 +165,36 @@ class AC(object):
         'G': 18     'H': 25     'J': 28
         'DELETE THIS': 34 (explained on the README)
 
-        :param clip: vs.VideoNode:  needed for framerate for audio/chapter timecodes
-        :param trims: list:  must be a list of 2 or 3-tuples in the format
+        :param clip: <vs.VideoNode> needed to determine framerate for audio/chapter timecodes
+            :color family: ANY
+            :subsampling: ANY
+            :bit depth: ANY
+
+        :param trims: <list> must be a list of 2 or 3-tuples in the format
             [(start,end,'name'),...]
             or
             [(start,'name'),...,(start,end,'name')]
 
             Only need to specify start frame if chapter is continuous (see example above).
-                Last tuple must specify end frame.
+            Last tuple MUST specify end frame.
             If specifying end frame, it is ALWAYS inclusive.
 
-        :param audio_file: str:  '/path/to/audio_file.wav'
-        :param outfile: str:  can be either a filename 'out.wav' or a full path '/path/to/out.wav'
-        :param chapter_file: str:  can be either a filename 'chap.txt' or a full path '/path/to/chap.txt'
-        :param gui: bool:  whether or not to auto-open MKVToolNix GUI with chapter timings
-        :param names: bool:  whether or not to use specified names or auto-generated
+        :param audio_file: <str> '/path/to/audio_file.wav'
+        :param outfile: <str> can be either a filename 'out.wav' or a full path '/path/to/out.wav'
+        :param chapter_file: <str> can be either a filename 'chap.txt' or a full path '/path/to/chap.txt'
+        :param gui: <bool> whether or not to auto-open MKVToolNix GUI with chapter_file (Default value = True)
+
+        :param names: <bool> whether or not to use specified chapter names (Default value = True)
             if False, you do not need to specify chapter names:
+                :param trims: <list> must be a list of 1 or 2-tuples in the format
+                    [(start,end),...]
+                    or
+                    [(start,),...,(start,end)]
 
-            ? param trims:
-                if False, must be a list of either 1 or 2-tuples in the format
-                [(start,end),...]
-                or
-                [(start,),...,(start,end)]
-
-                Only need to specify start frame if chapter is continuous (see example above).
-                    Last tuple must specify end frame.
-                If specifying end frame, it is ALWAYS inclusive.
-
-        :param debug: bool:  used for testing, leave blank
+        :param debug: <bool> used for testing, leave blank (Default value = False)
 
         OUTPUTS: * a cut/spliced audio file in either the script's directoy or the path specified with 'outfile'
                  * a plaintext file with chapter timings
-                 ? can open MKVToolNix GUI automatically if 'gui' is True
         """
         self.__init__()
 
@@ -263,19 +252,19 @@ class AC(object):
         if names:
             for k, v in enumerate(trims):
                 if type(v[1]) == str:
-                    self.e.append(self.s[k + 1] - 1)
+                    self.e.append(self.s[k + 1] - 1)  # if the 2nd value is a string, derive end time from next start
                 else:
                     self.e.append(v[1])
         else:
             for k, v in enumerate(trims):
                 if len(v) == 1:
-                    self.e.append(self.s[k + 1] - 1)
+                    self.e.append(self.s[k + 1] - 1)  # if only start time specified, derive end time from next start
                 else:
                     self.e.append(v[1])
         if names:
             for trim in trims:
                 if len(trim) == 2:
-                    self.chapter_names.append(trim[1])
+                    self.chapter_names.append(trim[1])  # if end time not specified, 2nd value is chapter name
                 else:
                     self.chapter_names.append(trim[2])
 
@@ -305,90 +294,91 @@ class AC(object):
             args = split(cmd.format(self.mkvtoolnixgui, self.chapter_file))
             Popen(args)
 
-    def _chapter_timings(self, a: list = None, b: list = None):
-        s = a if a else self.s
-        e = b if b else self.e
+    def _chapter_timings(self, a: List[int] = None, b: List[int] = None) -> Tuple[List[int], List[int]]:
+        """Shifts zipped lists, a,b to start with a[0] = 0, and removes empty space between consecutive pairs."""
+        a = a if a else self.s
+        b = b if b else self.e
 
         index = 1
         diff = 0
 
-        if s[0] > 0:
-            idiff = s[0]
-            s = [i - idiff for i in s]
-            e = [i - idiff for i in e]
+        if a[0] > 0:
+            idiff = a[0]  # shift all values so that 'a' starts at 0
+            a = [i - idiff for i in a]
+            b = [i - idiff for i in b]
 
-        while index < len(s):
-            for i in range(index, len(s)):
-                if s[i] != e[i - 1] + 1:
-                    diff = s[i] - e[i - 1] - 1
+        while index < len(a):
+            for i in range(index, len(a)):
+                if a[i] != b[i - 1] + 1:
+                    diff = a[i] - b[i - 1] - 1
                     index = i
-                    break
+                    break  # shift all values starting at 'index' to remove space between index a and previous b
 
                 diff = 0
                 index += 1
 
-            for i in range(index, len(s)):
-                s[i] -= diff
-                e[i] -= diff
+            for i in range(index, len(a)):
+                a[i] -= diff
+                b[i] -= diff
 
-        e[-1] += 1
+        b[-1] += 1  # last b value incremented by 1 to include the last frame in the virtual ordered-chapters timeline
 
-        return s, e
+        return a, b
 
-    def _check_ordered(self, a: list = None, b: list = None):
-        """checks if lists follow logical python slicing 4,-10 on a 0-99 (100 fr) >> [4:90]"""
+    def _check_ordered(self, a: List[int] = None, b: List[int] = None) -> bool:
+        """Checks if lists follow logical python slicing."""
         a = a if a else self.s
         b = b if b else self.e
 
         if not all(a[i] < a[i + 1] for i in range(len(a) - 1)):
-            """makes sure list a is ordered L to G, without overlaps"""
-            return False
+            return False  # checks if list a is ordered L to G, without overlaps
 
         if not all(b[i] < a[i + 1] for i in range(len(a) - 1)):
-            """makes sure all ends are less than next start"""
-            return False
+            return False  # checks if all ends are less than next start
 
         if not all(a[i] < b[i] for i in range(len(a))):
-            """makes sure each pair is at least one frame long"""
-            return False
+            return False  # makes sure each pair is at least one frame long
 
         return True
 
-    def _combine(self, a: list = None, b: list = None, tclip: vs.VideoNode = None):
-        s = a if a else self.s
-        e = b if b else self.e
+    def _combine(self, a: List[int] = None, b: List[int] = None, tclip: vs.VideoNode = None) -> \
+            Tuple[List[int], List[int]]:
+        """If b is consecutive with next a, remove both of these values from either list."""
+        a = a if a else self.s
+        b = b if b else self.e
 
-        e = [i + 1 for i in e]
+        b = [i + 1 for i in b]  # because b is inclusive, we need to include the next frame for the timestamp
 
-        s, e = self._negative_to_positive(s, e, tclip)
+        a, b = self._negative_to_positive(a, b, tclip)
 
-        c_s = []
-        c_e = []
+        a_combined = []
+        b_combined = []
 
-        for i in range(len(s)):
+        for i in range(len(a)):
             if i == 0:
-                c_s.append(s[i])
-                if e[i] != s[i + 1]:
-                    c_e.append(e[i])
+                a_combined.append(a[i])
+                if b[i] != a[i + 1]:
+                    b_combined.append(b[i])
                     continue
                 else:
                     continue
-            elif i < len(s) - 1:
-                if s[i] != e[i - 1]:
-                    c_s.append(s[i])
-                if e[i] != s[i + 1]:
-                    c_e.append(e[i])
+            elif i < len(a) - 1:
+                if a[i] != b[i - 1]:
+                    a_combined.append(a[i])
+                if b[i] != a[i + 1]:
+                    b_combined.append(b[i])
                     continue
                 else:
                     continue
-            elif i == len(s) - 1:
-                if s[i] != e[i - 1]:
-                    c_s.append(s[i])
-                c_e.append(e[i])
+            elif i == len(a) - 1:
+                if a[i] != b[i - 1]:
+                    a_combined.append(a[i])
+                b_combined.append(b[i])
 
-        return c_s, c_e
+        return a_combined, b_combined
 
     def _cut_audio(self):
+        """Uses mkvmerge to split and re-join the audio clips."""
         ts_cmd = self.mkvmerge + '{delay} --split parts:'
 
         for s, e in zip(self.cut_ts_s, self.cut_ts_e):
@@ -420,7 +410,8 @@ class AC(object):
             print(args)
             exit('Failed to execute mkvmerge: 2')
 
-    def _f2ts(self, f: int, tclip: vs.VideoNode = None, precision: int = 9):
+    def _f2ts(self, f: int, tclip: vs.VideoNode = None, precision: int = 9) -> str:
+        """Converts frame number to a HH:mm:ss.nnnnnnnnn or HH:mm:ss.mmm timestamp based on clip's framerate."""
         if self.clip:
             n = self.clip.fps_num
             d = self.clip.fps_den
@@ -430,26 +421,30 @@ class AC(object):
         else:
             raise ValueError('_f2ts: clip needs to be specified')
 
-        t = round(10 ** precision * f * Fraction(d, n)) if precision > 3 else round(
-            10 ** precision * f * Fraction(d, n) + .5)
+        if precision == 3:
+            t = round(10 ** precision * f * Fraction(d, n) + .5)
+        else:
+            t = round(10 ** precision * f * Fraction(d, n))
+
         s = t / 10 ** precision
         m = s // 60
-        s = s % 60
+        s %= 60
         h = m // 60
-        m = m % 60
+        m %= 60
 
         if precision == 3:
-            return '{:02.0f}:{:02.0f}:{:06.3f}'.format(h, m, s)
+            return '{:02.0f}:{:02.0f}:{:06.3f}'.format(h, m, s)  # OGM chapter files only support millisecond accuracy
         else:
             return '{:02.0f}:{:02.0f}:{:012.9f}'.format(h, m, s)
 
-    def _negative_to_positive(self, a: list, b: list, tclip: vs.VideoNode = None):
+    def _negative_to_positive(self, a: List[int], b: List[int], tclip: vs.VideoNode = None) -> Tuple[
+        List[int], List[int]]:
+        """Changes negative indicies to positive based on number of frames in clip."""
         num_frames = tclip.num_frames if tclip else self.clip.num_frames
         positive_a = []
         positive_b = []
 
         if len(a) != len(b):
-            """checks whether lists are same length (redundant with other funcs)"""
             raise ValueError('lists must be same length')
 
         for x, y in zip(a, b):
@@ -465,7 +460,8 @@ class AC(object):
 
         return positive_a, positive_b
 
-    def _write_chapters(self, a: list, b: list, chapter_file: str = None):
+    def _write_chapters(self, a: List[str], b: List[str], chapter_file: str = None):
+        """Writes chapters in basic OGM format to a plaintext file, for easy opening with MKVToolNix GUI."""
         chapter_file = chapter_file if chapter_file else self.chapter_file
 
         if '.txt' not in chapter_file:
