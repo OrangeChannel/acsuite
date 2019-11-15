@@ -10,7 +10,6 @@ Run "acsuite.AC().octrim(clip, <trims>, <audio_file>, <outfile>, <chapter_file>)
 """
 __author__ = 'Dave <orangechannel@pm.me>'
 __date__ = '14 November 2019'
-
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
@@ -60,12 +59,12 @@ class AC(object):
             :bit depth: ANY
 
         :param trims: <Iterable> either a list of 2-tuples, or a single tuple of 2 ints
-                empty slicing must represented with a '0'
-                    > clip[:10]+clip[-5:]
-                    > trims=[(0,10), (-5,0)]
-                single frame slices must be represented as a normal slice
-                    >> clip[15]
-                    >> trims=(15,16)
+            empty slicing must represented with a '0'
+                > clip[:10]+clip[-5:]
+                > trims=[(0,10), (-5,0)]
+            single frame slices must be represented as a normal slice
+                >> clip[15]
+                >> trims=(15,16)
 
         :param audio_file: <str> '/path/to/audio_file.wav'
         :param outfile: <str> can be either a filename 'out.wav' or a full path '/path/to/out.wav'
@@ -131,10 +130,10 @@ class AC(object):
 
         self._cut_audio()
 
-    def octrim(self, clip: vs.VideoNode, trims: Union[
-        List[Union[Tuple[int, int, str], Tuple[int, str]]], List[Union[Tuple[int, int], Tuple[int]]]], audio_file: str,
-               outfile: str, chapter_file: str,
-               gui: bool = True, names: bool = True, debug: bool = False):
+    def octrim(self, clip: vs.VideoNode, trims: Union[List[Union[Tuple[int, int, str], Tuple[int, str]]],
+                                                      List[Union[Tuple[int, int], Tuple[int]]]],
+               audio_file: str, outfile: str, chapter_file: str, gui: bool = True, names: bool = True,
+               debug: bool = False):
         """Trimming function designed for ordered-chapters creation.
 
         ALWAYS uses frame numbers from un-cut/un-trimmed src video.
@@ -193,8 +192,9 @@ class AC(object):
 
         :param debug: <bool> used for testing, leave blank (Default value = False)
 
-        OUTPUTS: * a cut/spliced audio file in either the script's directoy or the path specified with 'outfile'
-                 * a plaintext file with chapter timings
+        OUTPUTS:
+            * a cut/spliced audio file in either the script's directoy or the path specified with 'outfile'
+            * a plaintext file with chapter timings
         """
         self.__init__()
 
@@ -437,8 +437,8 @@ class AC(object):
         else:
             return '{:02.0f}:{:02.0f}:{:012.9f}'.format(h, m, s)
 
-    def _negative_to_positive(self, a: List[int], b: List[int], tclip: vs.VideoNode = None) -> Tuple[
-        List[int], List[int]]:
+    def _negative_to_positive(self, a: List[int], b: List[int], tclip: vs.VideoNode = None) \
+            -> Tuple[List[int], List[int]]:
         """Changes negative indicies to positive based on number of frames in clip."""
         num_frames = tclip.num_frames if tclip else self.clip.num_frames
         positive_a = []
@@ -461,7 +461,7 @@ class AC(object):
         return positive_a, positive_b
 
     def _write_chapters(self, a: List[str], b: List[str], chapter_file: str = None):
-        """Writes chapters in basic OGM format to a plaintext file, for easy opening with MKVToolNix GUI."""
+        """Writes chapters in basic OGM format to a plaintext file."""
         chapter_file = chapter_file if chapter_file else self.chapter_file
 
         if '.txt' not in chapter_file:
