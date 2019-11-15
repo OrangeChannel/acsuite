@@ -8,8 +8,9 @@ Run "acsuite.AC().eztrim(clip, <trims>, <audio_file>, <outfile>)" with trims tha
 
 Run "acsuite.AC().octrim(clip, <trims>, <audio_file>, <outfile>, <chapter_file>)" for ordered-chapters creation.
 """
+__all__ = ['AC']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '14 November 2019'
+__date__ = '15 November 2019'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
@@ -25,7 +26,8 @@ from typing import List, Tuple, Union
 import vapoursynth as vs
 
 
-class AC(object):
+class AC:
+    """Base class for trimming functions."""
     def __init__(self):
         self.mkvmerge = r'mkvmerge'  # change to executable path if not already in PATH
         self.mkvtoolnixgui = r'mkvtoolnix-gui'  # change to executable path if not already in PATH

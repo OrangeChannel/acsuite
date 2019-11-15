@@ -2,11 +2,9 @@ import unittest
 from fractions import Fraction
 
 import acsuite
-
-ac = acsuite.AC()
-
 import vapoursynth as vs
 
+ac = acsuite.AC()
 core = vs.core
 
 
