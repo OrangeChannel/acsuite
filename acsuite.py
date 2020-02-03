@@ -1,13 +1,7 @@
-"""
-Frame-based cutting/trimming/splicing of audio with VapourSynth.
-
-VapourSynth-based replacement for @AzraelNewtype's audiocutter.py:
-
-    https://github.com/AzraelNewtype/audiocutter
-"""
+"""Frame-based cutting/trimming/splicing of audio with VapourSynth."""
 __all__ = ['AC']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '1 January 2020'
+__date__ = '3 February 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
@@ -17,8 +11,11 @@ from re import compile, IGNORECASE
 from shlex import split
 from string import ascii_uppercase
 from subprocess import PIPE, Popen, run
-from sys import getfilesystemencoding
+from sys import getfilesystemencoding, version_info
 from typing import List, Tuple, Union
+
+if version_info[0] != 3 or version_info[1] < 8:
+    raise SystemError("Python version 3.8+ required!")
 
 import vapoursynth as vs
 
@@ -27,7 +24,8 @@ import_as = 'acs'
 
 class AC:
     """Base class for trimming functions."""
-    def __init__(self, clip=None, audio_file=None, outfile=None, chapter_file=None):
+
+    def __init__(self, clip=None, /, audio_file=None, outfile=None, chapter_file=None):
         """Add executable paths here if not already in PATH."""
         self.mkvmerge = r'mkvmerge'
         self.mkvtoolnixgui = r'mkvtoolnix-gui'
@@ -41,9 +39,9 @@ class AC:
         self.outfile = outfile
         self.chapter_file = chapter_file
 
-    def eztrim(self, clip: vs.VideoNode, trims: Union[List[Tuple[int, int]],
-                                                      Tuple[int, int]],
-               audio_file: str, outfile: str, debug: bool = False):
+    def eztrim(self, clip: vs.VideoNode, /, trims: Union[List[Tuple[int, int]],
+                                                         Tuple[int, int]],
+               audio_file: str, outfile: str, *, debug: bool = False):
         """
         Simpler trimming function that follows VS slicing syntax.
 
@@ -78,32 +76,26 @@ class AC:
 
         :param outfile: either a filename `'out.wav'` or a full path `'/path/to/out.wav'`
 
-        :param debug: used for testing, leave blank (Default = `False`)
-
         OUTPUTS: a cut/spliced audio file in either the script's directoy or the path specified with 'outfile'
         """
         self.__init__(clip, audio_file, outfile)
+        single = False
 
         if not isinstance(trims, (list, tuple)): raise TypeError('eztrim: trims must be a list of 2-tuples (or just one 2-tuple)')
 
-        single = False
-
         for trim in trims:
-            if type(trim) == int:
-                # if first element is an int, assume it's a single tuple
+            if type(trim) == int:  # if first element is an int, assume it's a single tuple
                 single = True
                 if len(trims) != 2: raise ValueError('eztrim: the trim must have 2 elements')
                 break
 
             else:  # makes sure to error check only for multiple tuples
-                if not isinstance(trim, (list, tuple)): raise TypeError('eztrim: the trim {} is not a tuple'.format(trim))
+                if not isinstance(trim, tuple): raise TypeError('eztrim: the trim {} is not a tuple'.format(trim))
                 if len(trim) != 2: raise ValueError('eztrim: the trim {} needs 2 elements'.format(trim))
                 for i in trim:
                     if type(i) != int: raise ValueError('eztrim: the trim {} must have 2 ints'.format(trim))
 
-        if single:
-            self.s.append(trims[0])
-            self.e.append(trims[1])
+        if single: self.s, self.e = trims
 
         else:
             for s, e in trims:
@@ -113,23 +105,27 @@ class AC:
         self.s, self.e = self._negative_to_positive(self.s, self.e)
 
         if single:
-            if self.e[0] <= self.s[0]: raise ValueError('the trim {} is not logical'.format(trims))
-            self.cut_ts_s.append(self._f2ts(self.s[0]))
-            self.cut_ts_e.append(self._f2ts(self.e[0]))
+            if self.e <= self.s: raise ValueError('the trim {} is not logical'.format(trims))
+            self.cut_ts_s.append(self._f2ts(self.s))
+            self.cut_ts_e.append(self._f2ts(self.e))
 
         else:
             if self._check_ordered():
                 for i in self.s: self.cut_ts_s.append(self._f2ts(i))
                 for i in self.e: self.cut_ts_e.append(self._f2ts(i))
+
             else: raise ValueError('the trims are not logical')
 
         if debug: return {'s': self.s, 'e': self.e, 'cut_ts_s': self.cut_ts_s, 'cut_ts_e': self.cut_ts_e}
 
         self._cut_audio()
 
-    def octrim(self, clip: vs.VideoNode, trims: Union[List[Union[Tuple[int, int, str], Tuple[int, str]]],
-                                                      List[Union[Tuple[int, int], Tuple[int]]]],
-               audio_file: str, outfile: str, chapter_file: str, gui: bool = True, names: bool = True, debug: bool = False):
+    def octrim(self, clip: vs.VideoNode, /, trims: Union[List[Union[Tuple[int, int, str],
+                                                                    Tuple[int, str]]],
+                                                         List[Union[Tuple[int, int],
+                                                                    Tuple[int]]]],
+               audio_file: str, outfile: str, chapter_file: str, gui: bool = True, names: bool = True,
+               *, debug: bool = False):
         """
         Trimming function designed for ordered-chapters creation.
 
@@ -198,8 +194,6 @@ class AC:
                     or
                     [(start,),...,(start,end)]
 
-        :param debug: used for testing, leave blank (Default value = False)
-
         OUTPUTS:
             * a cut/spliced audio file in either the script's directoy
               or the path specified with 'outfile'
@@ -207,19 +201,23 @@ class AC:
         """
         self.__init__(clip, audio_file, outfile, chapter_file)
 
-        if not isinstance(trims, list): raise TypeError('octrim: trims must be a list [] of tuples')
+        if not isinstance(trims, list):
+            raise TypeError('octrim: trims must be a list [] of tuples')
 
         if names:
             for trim in trims:
                 if type(trim) != tuple: raise TypeError('octrim: trims must all be tuples (if only using start frame, enter as (int,)')
                 if len(trim) > 3: raise ValueError('octrim: trim {} must have at most 2 ints and 1 string'.format(trim))
+
                 elif len(trim) == 3:
                     for i in range(2):
                         if not isinstance(trim[i], int): raise TypeError('octrim: trim {} must have 2 ints'.format(trim))
                     if not isinstance(trim[2], str): raise TypeError('octrim: expected str in pos 2 in trim {}'.format(trim))
+
                 elif len(trim) == 2:
                     if not isinstance(trim[0], int): raise TypeError('octrim: expected int in pos 0 in trim {}'.format(trim))
                     if not isinstance(trim[1], str): raise TypeError('octrim: expected str in pos 1 in trim {}'.format(trim))
+
                 else: raise ValueError('octrim: trim {} must be at least 2 elements long'.format(trim))
 
             if len(trims[-1]) != 3: raise ValueError('octrim: the last trim, {}, must have 3 elements'.format(trims[-1]))
@@ -228,35 +226,39 @@ class AC:
             for trim in trims:
                 if type(trim) != tuple: raise TypeError('octrim: trims must all be tuples (if only using start frame, enter as (int,))')
                 if len(trim) > 2: raise ValueError('octrim: trim {} must have at most 2 ints'.format(trim))
+
                 elif len(trim) == 2:
                     for i in range(2):
                         if not isinstance(trim[i], int): raise TypeError('octrim: trim {} must have 2 ints'.format(trim))
+
                 elif len(trim) == 1:
                     if not isinstance(trim[0], int): raise TypeError('octrim: expected int in pos 0 in trim {}'.format(trim))
+
             if len(trims[-1]) != 2: raise ValueError('octrim: the last trim, {}, must have 2 ints'.format(trims[-1]))
 
-        [self.s.append(i[0]) for i in trims]
+        for i in trims: self.s.append(i[0])
 
         if names:
             for k, v in enumerate(trims):
                 if type(v[1]) == str: self.e.append(self.s[k + 1] - 1)  # derive end time from next start
                 else: self.e.append(v[1])
+
+            for trim in trims:
+                if len(trim) == 2: self.chapter_names.append(trim[1])  # 2nd value is chapter name
+                else: self.chapter_names.append(trim[2])
+
         else:
             for k, v in enumerate(trims):
                 if len(v) == 1: self.e.append(self.s[k + 1] - 1)  # derive end time from next start
                 else: self.e.append(v[1])
-        if names:
-            for trim in trims:
-                if len(trim) == 2: self.chapter_names.append(trim[1])  # 2nd value is chapter name
-                else: self.chapter_names.append(trim[2])
 
         cut_s, cut_e = self._combine()
 
         if self._check_ordered():
             for i in cut_s: self.cut_ts_s.append(self._f2ts(i))
             for i in cut_e: self.cut_ts_e.append(self._f2ts(i))
-        else:
-            raise ValueError('the trims are not logical')
+
+        else: raise ValueError('the trims are not logical')
 
         chap_s, chap_e = self._chapter_timings()
 
@@ -285,9 +287,7 @@ class AC:
 
         while index < len(a):
             for i in range(index, len(a)):
-                if a[i] != b[i - 1] + 1:
-                    # shift all values starting at 'index' to remove
-                    # space between index a and previous b
+                if a[i] != b[i - 1] + 1:  # shift all values starting at 'index' to remove space between a and previous b
                     diff = a[i] - b[i - 1] - 1
                     index = i
                     break
@@ -299,9 +299,7 @@ class AC:
                 a[i] -= diff
                 b[i] -= diff
 
-        # last b value incremented by 1 to include the last frame in the
-        # virtual ordered-chapters timeline
-        b[-1] += 1
+        b[-1] += 1  # last b value incremented by 1 to include the last frame in the virtual ordered-chapters timeline
 
         return a, b
 
@@ -309,9 +307,12 @@ class AC:
         """Checks if lists follow logical python slicing."""
         a, b = a if a else self.s, b if b else self.e
 
-        if not all(a[i] < a[i + 1] for i in range(len(a) - 1)): return False  # checks if list a is ordered L to G
-        if not all(b[i] < a[i + 1] for i in range(len(a) - 1)): return False  # checks if all ends are less than next start
-        if not all(a[i] < b[i] for i in range(len(a))): return False  # makes sure pair is at least one frame long
+        if not all(a[i] < a[i + 1] for i in range(len(a) - 1)):
+            return False  # checks if list a is ordered L to G
+        if not all(b[i] < a[i + 1] for i in range(len(a) - 1)):
+            return False  # checks if all ends are less than next start
+        if not all(a[i] < b[i] for i in range(len(a))):
+            return False  # makes sure pair is at least one frame long
 
         return True
 
@@ -334,8 +335,7 @@ class AC:
                 if b[i] != a[i + 1]: b_combined.append(b[i])
                 continue
             elif i == len(a) - 1:
-                if a[i] != b[i - 1]:
-                    a_combined.append(a[i])
+                if a[i] != b[i - 1]: a_combined.append(a[i])
                 b_combined.append(b[i])
 
         return a_combined, b_combined
@@ -356,26 +356,24 @@ class AC:
         ret = delre.search(self.audio_file)
 
         delay = '{0}:{1}'.format(tid, ret.group(1)) if ret else None
-        if delay: delay_statement = ' --sync {}'.format(delay)
-        else: delay_statement = ''
+        delay_statement = ' --sync {}'.format(delay) if delay else ''
 
         cut_cmd += ' -o "{}" "{}"'.format(self.outfile, self.audio_file)
         args = split(cut_cmd.format(delay=delay_statement))
         cut_exec = Popen(args).returncode
 
-        if cut_exec == 1: print('Mkvmerge exited with warnings: 1')
+        if cut_exec == 1:
+            print('Mkvmerge exited with warnings: 1')
         elif cut_exec == 2:
             print(args)
             exit('Failed to execute mkvmerge: 2')
 
-    def _f2ts(self, f: int, tclip: vs.VideoNode = None, precision: int = 9) -> str:
+    def _f2ts(self, f: int, /, tclip: vs.VideoNode = None, *, precision: int = 9) -> str:
         """Converts frame number to HH:mm:ss.nnnnnnnnn or HH:mm:ss.mmm timestamp based on clip's framerate."""
-        if self.clip: n, d = self.clip.fps_num, self.clip.fps_den
-        elif tclip: n, d = tclip.fps_num, tclip.fps_den
-        else: raise ValueError('_f2ts: clip needs to be specified')
+        if not tclip and not self.clip: raise ValueError('_f2ts: clip needs to be specified')
+        n, d = [tclip.fps_num, tclip.fps_den] if tclip else [self.clip.fps_num, self.clip.fps_den]
 
-        if precision == 3: t = round(10 ** precision * f * Fraction(d, n) + .5)
-        else: t = round(10 ** precision * f * Fraction(d, n))
+        t = round(10 ** precision * f * Fraction(d, n) + .5) if precision == 3 else round(10 ** precision * f * Fraction(d, n))
 
         s = t / 10 ** precision
         m = s // 60
@@ -384,12 +382,23 @@ class AC:
         m %= 60
 
         # OGM chapter files only support millisecond accuracy
-        if precision == 3: return '{:02.0f}:{:02.0f}:{:06.3f}'.format(h, m, s)
-        else: return '{:02.0f}:{:02.0f}:{:012.9f}'.format(h, m, s)
+        if precision == 3:
+            return '{:02.0f}:{:02.0f}:{:06.3f}'.format(h, m, s)
+        else:
+            return '{:02.0f}:{:02.0f}:{:012.9f}'.format(h, m, s)
 
-    def _negative_to_positive(self, a: List[int], b: List[int], tclip: vs.VideoNode = None) -> Tuple[List[int], List[int]]:
+    def _negative_to_positive(self, a: Union[List[int], int], b: Union[List[int], int], tclip: vs.VideoNode = None) \
+            -> Union[Tuple[List[int],
+                           List[int]],
+                     Tuple[int, int]]:
         """Changes neg index to pos based on clip.num_frames."""
         num_frames = tclip.num_frames if tclip else self.clip.num_frames
+
+        if type(a) == int and type(b) == int:  # speed-up analysis of a single trim
+            if abs(a) > num_frames or abs(b) > num_frames: raise ValueError('{} is out of bounds'.format(max(abs(a), abs(b))))
+
+            return a if a >= 0 else num_frames + a, b if b > 0 else num_frames + b
+
         positive_a, positive_b = [], []
 
         if len(a) != len(b): raise ValueError('lists must be same length')

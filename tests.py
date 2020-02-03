@@ -65,9 +65,7 @@ class ACsuiteTests(unittest.TestCase):
             ['00:00:04.400000000', '00:00:08.000000000', '00:00:09.800000000', '00:00:16.000000000',
              '00:00:19.000000000', '00:00:20.000000000'])
 
-        self.assertEqual(ac.eztrim(self.BLANK_CLIP, (3, -13), audio_file='', outfile='', debug=True)['s'], [3])
-
-        self.assertEqual(ac.eztrim(self.BLANK_CLIP, (3, -13), audio_file='', outfile='', debug=True)['e'], [87])
+        self.assertEqual(ac.eztrim(self.BLANK_CLIP, (3, -13), audio_file='', outfile='', debug=True), {'s': 3, 'e': 87, 'cut_ts_s': ['00:00:00.600000000'], 'cut_ts_e': ['00:00:17.400000000']})
 
     def test_check_ordered(self):
         self.assertFalse(ac._check_ordered([0, 1, 1]))
