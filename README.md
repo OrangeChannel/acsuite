@@ -7,13 +7,13 @@ from within a VapourSynth environment.
 
 ## Functions:
 
-### eztrim(self, clip, trims, audio_file, outfile, debug=False)
+### eztrim(clip, trims, audio_file, outfile)
 ```py
 import vapoursynth as vs
 core = vs.core
 
 import acsuite
-ac = acsuite.AC()
+acs = acsuite.AC()
 
 file  = r'/BDMV/STREAM/00003.m2ts'
 afile = r'/BDMV/STREAM/00003.wav'  # pre-extracted with TSMuxer or similar
@@ -22,18 +22,18 @@ src = core.lsmas.LWLibavSource(file)  # for the example, we will assume the src 
 
 clip = src[3:22]+src[23:40]+src[48]+src[50:-20]+src[-10:-5]+src[97:]
 
-ac.eztrim(src, [(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)], afile, 'cut.wav')
+acs.eztrim(src, [(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)], afile, 'cut.wav')
 # clip should be the uncut/untrimmed src that you are trimming from
  ```
 
-### octrim(self, clip, trims, audio_file, outfile, chapter_file, gui=True, names=True, debug=False)
+### octrim(clip, trims, audio_file, outfile, chapter_file, gui=True, names=True)
 
 ```py
 import vapoursynth as vs
 core = vs.core
 
 import acsuite
-ac = acsuite.AC()
+acs = acsuite.AC()
 
 file  = r'/BDMV/STREAM/00003.m2ts'
 afile = r'/BDMV/STREAM/00003.wav'  # pre-extracted with TSMuxer or similar
@@ -42,7 +42,7 @@ src = core.lsmas.LWLibavSource(file)
 
 clip = src[1:3]+src[4:10]+src[11:21]+src[24:31]+src[33:42]
 
-ac.octrim(src, [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'), (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], afile, 'cut.wav', 'chapters.txt')
+acs.octrim(src, [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'), (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], afile, 'cut.wav', 'chapters.txt')
 # clip should be the uncut/untrimmed src that you are trimming from
  ```
 
@@ -65,7 +65,7 @@ delete this chapter.
 ## Getting Started
 
 ### Dependencies
-- [Python 3.7+](https://www.python.org/downloads/)
+- [Python 3.8+](https://www.python.org/downloads/)
 - [VapourSynth](https://github.com/vapoursynth/vapoursynth/releases)
 - [MKVToolNix](https://mkvtoolnix.download/downloads.html)
 - MKVToolNix GUI (optional)
@@ -84,6 +84,10 @@ Install the [AUR package](https://aur.archlinux.org/packages/vapoursynth-plugin-
 ```sh
 yay -S vapoursynth-plugin-acsuite-git
 ```
+
+#### Gentoo Linux
+
+Install via the [VapourSynth portage tree](https://github.com/4re/vapoursynth-portage).
 
 ## Help!
 
