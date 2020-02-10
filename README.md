@@ -24,7 +24,7 @@ clip = src[3:22]+src[23:40]+src[48]+src[50:-20]+src[-10:-5]+src[97:]
 
 acs.eztrim(src, [(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)], afile, 'cut.wav')
 # clip should be the uncut/untrimmed src that you are trimming from
- ```
+```
 
 ### octrim(clip, trims, audio_file, outfile, chapter_file, gui=True, names=True)
 
@@ -44,7 +44,26 @@ clip = src[1:3]+src[4:10]+src[11:21]+src[24:31]+src[33:42]
 
 acs.octrim(src, [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 20, 'F'), (24, 30, 'G'), (33, 'H'), (36, 41, 'J')], afile, 'cut.wav', 'chapters.txt')
 # clip should be the uncut/untrimmed src that you are trimming from
- ```
+```
+
+### audio_trim(file, trims)
+**requires ffmpeg**
+
+This serves as a wrapper to octrim (and the trims follow the same syntax) and
+allows specifying a .m2ts file without having to extract the audio.
+
+
+
+The following shell lines accomplish the same thing as the octrim python script
+above when ran in the folder containing the .m2ts files.
+
+```sh
+$ cd BDMV/STREAM
+$ python
+>>> import acsuite
+>>> acsuite.audio_trim('00003.m2ts', [(1,2,'A'),(4,'B'),(8,9,'C'),(11,'D'),(14,'E'),(18,20,'F'),(24,30,'G'),(33,'H'),(36,41,'J')])
+
+```
 
 ## Ordered chapters information:
 If `gui` is `True`,
@@ -69,6 +88,7 @@ delete this chapter.
 - [VapourSynth](https://github.com/vapoursynth/vapoursynth/releases)
 - [MKVToolNix](https://mkvtoolnix.download/downloads.html)
 - MKVToolNix GUI (optional)
+- [FFmpeg](https://ffmpeg.zeranoe.com/builds/) (optional)
 
 ### Installing
 

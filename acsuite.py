@@ -9,13 +9,11 @@ Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 from fractions import Fraction
 from re import compile, IGNORECASE
 from shlex import split
+from shutil import which
 from string import ascii_uppercase
 from subprocess import PIPE, Popen, run
-from sys import getfilesystemencoding, version_info
+from sys import getfilesystemencoding
 from typing import List, Tuple, Union
-
-if version_info[0] != 3 or version_info[1] < 8:
-    raise SystemError("Python version 3.8+ required!")
 
 import vapoursynth as vs
 
@@ -436,3 +434,17 @@ class AC:
         text_file = open(chapter_file, 'w')
         for i in lines: text_file.write(i + '\n')
         text_file.close()
+
+
+def audio_trim(path: str, trims: list):
+    """Wrapper for audio extraction for ordered-chapters creation."""
+    ffmpeg = which('ffmpeg')
+
+    file, ext = path.split('.')
+
+    clip = vs.core.lsmas.LWLibavSource(file)
+
+    cmd = '{} -i "{}" -vn "{}.wav"'.format(ffmpeg, path, file)
+    run(split(cmd))
+
+    AC().octrim(clip, trims, audio_file='{}.wav'.format(file), outfile='{}_cut.wav'.format(file), chapter_file='{}_chapters.txt'.format(file))
