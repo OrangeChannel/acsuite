@@ -46,13 +46,12 @@ acs.octrim(src, [(1, 2, 'A'), (4, 'B'), (8, 9, 'C'), (11, 'D'), (14, 'E'), (18, 
 # clip should be the uncut/untrimmed src that you are trimming from
 ```
 
-### audio_trim(file, trims)
+### audio_trim(file, trims, ez, name)
 **requires ffmpeg**
 
-This serves as a wrapper to octrim (and the trims follow the same syntax) and
+This serves as a wrapper to eztrim and octrim
+(the trims follow the same respective syntax) and
 allows specifying a .m2ts file without having to extract the audio.
-
-
 
 The following shell lines accomplish the same thing as the octrim python script
 above when ran in the folder containing the .m2ts files.
@@ -62,8 +61,13 @@ $ cd BDMV/STREAM
 $ python
 >>> import acsuite
 >>> acsuite.audio_trim('00003.m2ts', [(1,2,'A'),(4,'B'),(8,9,'C'),(11,'D'),(14,'E'),(18,20,'F'),(24,30,'G'),(33,'H'),(36,41,'J')])
-
 ```
+
+As a wrapper for eztrim, this command will result in `OP_cut.wav`.
+```py
+acsuite.audio_trim('ep01.m2ts', (0, 2158), ez=True, name='OP')
+```
+
 
 ## Ordered chapters information:
 If `gui` is `True`,

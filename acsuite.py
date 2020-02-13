@@ -436,15 +436,24 @@ class AC:
         text_file.close()
 
 
-def audio_trim(path: str, trims: list):
+def audio_trim(path: str, trims: list, ez: bool = False, name: str = None):
     """Wrapper for audio extraction for ordered-chapters creation."""
     ffmpeg = which('ffmpeg')
 
     file, ext = path.split('.')
 
-    clip = vs.core.lsmas.LWLibavSource(file)
+    clip = vs.core.lsmas.LWLibavSource(path)
 
     cmd = '{} -i "{}" -vn "{}.wav"'.format(ffmpeg, path, file)
     run(split(cmd))
 
-    AC().octrim(clip, trims, audio_file='{}.wav'.format(file), outfile='{}_cut.wav'.format(file), chapter_file='{}_chapters.txt'.format(file))
+    if ez:
+        if name:
+            AC().eztrim(clip, trims, audio_file='{}.wav'.format(file), outfile='{}_cut.wav'.format(name))
+        else:
+            AC().eztrim(clip, trims, audio_file='{}.wav'.format(file), outfile='{}_cut.wav'.format(file))
+    else:
+        if name:
+            AC().octrim(clip, trims, audio_file='{}.wav'.format(file), outfile='{}_cut.wav'.format(name), chapter_file='{}_chapters.txt'.format(file), gui=False)
+        else:
+            AC().octrim(clip, trims, audio_file='{}.wav'.format(file), outfile='{}_cut.wav'.format(file), chapter_file='{}_chapters.txt'.format(file), gui=False)
