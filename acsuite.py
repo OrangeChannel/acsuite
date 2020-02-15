@@ -1,7 +1,7 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
-__all__ = ['AC']
+__all__ = ['AC', 'audio_trim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '3 February 2020'
+__date__ = '15 February 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
