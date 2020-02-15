@@ -436,7 +436,7 @@ class AC:
         text_file.close()
 
 
-def audio_trim(path: str, trims: list, ez: bool = False, name: str = None):
+def audio_trim(path: str, trims: list, ez: bool = False, name: str = None, track_no: int = 0):
     """Wrapper for audio extraction for ordered-chapters creation."""
     ffmpeg = which('ffmpeg')
 
@@ -444,7 +444,7 @@ def audio_trim(path: str, trims: list, ez: bool = False, name: str = None):
 
     clip = vs.core.lsmas.LWLibavSource(path)
 
-    cmd = '{} -i "{}" -vn "{}.wav"'.format(ffmpeg, path, file)
+    cmd = '{} -i "{}" -map a:{} "{}.wav"'.format(ffmpeg, path, track_no, file)
     run(split(cmd))
 
     if ez:
