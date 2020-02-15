@@ -444,8 +444,7 @@ def audio_trim(path: str, trims: list, ez: bool = False, name: str = None, track
 
     clip = vs.core.lsmas.LWLibavSource(path)
 
-    cmd = '{} -i "{}" -map a:{} "{}.wav"'.format(ffmpeg, path, track_no, file)
-    run(split(cmd))
+    run([f'{ffmpeg}', '-i', path, '-map', f'a:{track_no}', f'{file}.wav'])
 
     if ez:
         if name:
