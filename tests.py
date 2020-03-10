@@ -45,6 +45,9 @@ class ACsuiteTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'are not logical'):
             ac.eztrim(self.BLANK_CLIP, trims=[(1, 10), (2, -95)], audio_file='', outfile='')
 
+        with self.assertWarns(SyntaxWarning):
+            ac.eztrim(self.BLANK_CLIP, trims=[(5, 10)], audio_file='', outfile='', debug=True)
+
         self.assertEqual(
             ac.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
                       outfile='', debug=True)['s'], [3, 23, 48, 50, 90, 97])

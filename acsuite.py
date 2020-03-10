@@ -1,6 +1,6 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '15 February 2020'
+__date__ = '9 March 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
@@ -12,8 +12,11 @@ from shutil import which
 from string import ascii_uppercase
 from subprocess import PIPE, run, STDOUT
 from typing import List, Tuple, Union
+from warnings import simplefilter, warn
 
 import vapoursynth as vs
+
+simplefilter("always")  # display warnings
 
 
 class AC:
@@ -78,6 +81,8 @@ class AC:
         # error checking
         if not isinstance(trims, (list, tuple)):
             raise TypeError(f'{g(n())}: trims must be a list of 2-tuples (or just one 2-tuple)')
+        if len(trims) == 1 and type(trims) == list:
+            warn(f'{g(n())}: using a list of one 2-tuple is not recommended; for a single trim, directly use a tuple: `trims=(5,-2)` instead of `trims=[(5,-2)]`', SyntaxWarning)
         for trim in trims:
             if type(trim) == int:  # if first element is an int, assume it's a single tuple
                 single = True
