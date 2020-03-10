@@ -9,7 +9,7 @@ core = vs.core
 
 
 class ACsuiteTests(unittest.TestCase):
-    BLANK_CLIP = core.std.BlankClip(_format=vs.YUV420P8, length=100, fpsnum=5, fpsden=1)
+    BLANK_CLIP = core.std.BlankClip(format=vs.YUV420P8, length=100, fpsnum=5, fpsden=1)
 
     def setUp(self) -> None:
         ac.__init__()

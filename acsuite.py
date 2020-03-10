@@ -1,5 +1,4 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
-__all__ = ['AC', 'audio_trim']
 __author__ = 'Dave <orangechannel@pm.me>'
 __date__ = '15 February 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
@@ -17,13 +16,11 @@ from typing import List, Tuple, Union
 
 import vapoursynth as vs
 
-import_as = 'acs'
-
 
 class AC:
     """Base class for trimming functions."""
 
-    def __init__(self, clip=None, /, audio_file=None, outfile=None, chapter_file=None):
+    def __init__(self, clip=None, audio_file=None, outfile=None, chapter_file=None):
         """Add executable paths here if not already in PATH."""
         self.mkvmerge = r'mkvmerge'
         self.mkvtoolnixgui = r'mkvtoolnix-gui'
