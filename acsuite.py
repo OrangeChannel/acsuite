@@ -119,7 +119,7 @@ class AC:
                                                                     Tuple[int, str]]],
                                                          List[Union[Tuple[int, int],
                                                                     Tuple[int]]]],
-               audio_file: str, outfile: str, chapter_file: str, gui: bool = True, names: bool = True,
+               audio_file: str, outfile: str, chapter_file: str, gui: bool = False, names: bool = True,
                *, debug: bool = False):
         """
         Trimming function designed for ordered-chapters creation.
@@ -180,7 +180,7 @@ class AC:
 
         :param chapter_file: can be either a filename 'chap.txt' or a full path `'/path/to/chap.txt'`
 
-        :param gui: whether or not to auto-open MKVToolNix GUI with chapter_file (Default value = True)
+        :param gui: whether or not to auto-open MKVToolNix GUI with chapter_file (Default value = False)
 
         :param names: whether or not to use specified chapter names (Default value = True)
             if False, you do not need to specify chapter names:
