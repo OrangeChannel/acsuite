@@ -1,6 +1,7 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
+__all__ = ['eztrim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '9 March 2020'
+__date__ = '13 March 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
@@ -36,9 +37,14 @@ class AC:
         self.outfile = outfile
         self.chapter_file = chapter_file
 
-    def eztrim(self, clip: vs.VideoNode, /, trims: Union[List[Tuple[int, int]],
-                                                         Tuple[int, int]],
-               audio_file: str, outfile: str, *, debug: bool = False):
+    def eztrim(self, clip: vs.VideoNode,
+               /,
+               trims: Union[List[Tuple[int, int]],
+                            Tuple[int, int]],
+               audio_file: str,
+               outfile: str,
+               *,
+               debug: bool = False):
         """
         Simpler trimming function that follows VS slicing syntax.
 
@@ -470,4 +476,7 @@ def _compress(a: List[int], b: List[int]) -> Tuple[List[int], List[int]]:
 
 
 # Decorator functions
-g = lambda x: x[0][3]  # g(n()) inside a function will print its name
+g = lambda x: x[0][3]  # g(inspect.stack()) inside a function will print its name
+
+# Wrapper functions
+eztrim = AC().eztrim
