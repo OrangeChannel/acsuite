@@ -332,10 +332,9 @@ class AC:
         """Converts frame number to HH:mm:ss.nnnnnnnnn or HH:mm:ss.mmm timestamp based on clip's framerate."""
         if self.clip is None:
             raise ValueError(f'{g(n())}: clip needs to be specified')
-        num, den = self.clip.fps_num, self.clip.fps_den
 
-        t = round(10 ** precision * f * Fraction(den, num) + .5) if precision == 3 else round(
-            10 ** precision * f * Fraction(den, num))
+        t = round(10 ** precision * f * self.clip.fps ** -1 + .5) if precision == 3 else round(
+            10 ** precision * f * self.clip.fps ** -1)
 
         s = t / 10 ** precision
         m = s // 60
