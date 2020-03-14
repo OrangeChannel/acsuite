@@ -53,7 +53,6 @@ delete this chapter.
 - [VapourSynth](https://github.com/vapoursynth/vapoursynth/releases)
 - [MKVToolNix](https://mkvtoolnix.download/downloads.html)
 - MKVToolNix GUI (optional)
-- [FFmpeg](https://ffmpeg.zeranoe.com/builds/) (optional)
 
 ### Installing
 

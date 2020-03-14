@@ -131,12 +131,19 @@ class AC:
 
         self.__cut_audio()
 
-    def octrim(self, clip: vs.VideoNode, /, trims: Union[List[Union[Tuple[int, int, str],
-                                                                    Tuple[int, str]]],
-                                                         List[Union[Tuple[int, int],
-                                                                    Tuple[int]]]],
-               audio_file: str, outfile: str, chapter_file: str, gui: bool = False, names: bool = True,
-               *, debug: bool = False):
+    def octrim(self, clip: vs.VideoNode,
+               /,
+               trims: Union[List[Union[Tuple[int, int, str],
+                                       Tuple[int, str]]],
+                            List[Union[Tuple[int, int],
+                                       Tuple[int]]]],
+               audio_file: str,
+               outfile: str,
+               chapter_file: str = None,
+               names: bool = True,
+               gui: bool = False,
+               *,
+               debug: bool = False):
         """
         Trimming function designed for ordered-chapters creation.
 
@@ -292,11 +299,12 @@ class AC:
         if debug: return {'cut_s': cut_s, 'cut_e': cut_e, 'chap_s_ts': chap_s_ts, 'chap_e_ts': chap_e_ts}
 
         self.__cut_audio()
-        self.__write_chapters(chap_s_ts, chap_e_ts)
+        if self.chapter_file:
+            self.__write_chapters(chap_s_ts, chap_e_ts)
+            if gui:
+                run([self.mkvtoolnixgui, '--edit-chapters', self.chapter_file])
 
-        if gui:
-            run([self.mkvtoolnixgui, '--edit-chapters', self.chapter_file])
-
+    # TODO: WHAT THE FUCK PYTHON
     def __cut_audio(self):
         """Uses mkvmerge to split and re-join the audio clips."""
         ts_cmd = self.mkvmerge + '{delay} --split parts:'
@@ -315,7 +323,7 @@ class AC:
         delay = '{0}:{1}'.format(tid, ret.group(1)) if ret else None
         delay_statement = ' --sync {}'.format(delay) if delay else ''
 
-        cut_cmd += ' -o "{}" "{}"'.format(self.outfile, self.audio_file)
+        cut_cmd += ' -o "{}" -D "{}"'.format(self.outfile, self.audio_file)
         args = split(cut_cmd.format(delay=delay_statement))
         cut_exec = Popen(args).returncode
 
@@ -347,8 +355,7 @@ class AC:
             return '{:02.0f}:{:02.0f}:{:012.9f}'.format(h, m, s)
 
     def _negative_to_positive(self, a: Union[List[int], int], b: Union[List[int], int]) \
-            -> Union[Tuple[List[int], List[int]],
-                     Tuple[int, int]]:
+            -> Union[Tuple[List[int], List[int]], Tuple[int, int]]:
         """Changes negative/zero index to positive based on clip.num_frames."""
         if self.clip is None:
             raise ValueError(f'{g(n())}: clip needs to be specified')
@@ -377,7 +384,7 @@ class AC:
 
         return positive_a, positive_b
 
-    def __write_chapters(self, a: List[str], b: List[str]):
+    def __write_chapters(self, a: List[str], b: List[str], debug: bool = False):
         """Writes chapters in basic OGM format to a plaintext file."""
         chapter_file = self.chapter_file
 
@@ -396,11 +403,12 @@ class AC:
         lines.append('CHAPTER{:02d}={}'.format(len(a), b[-1]))
         lines.append('CHAPTER{:02d}NAME=DELETE ME'.format(len(a)))
 
+        if debug: return lines
+
         text_file = open(chapter_file, 'w')
         for i in lines: text_file.write(i + '\n')
         text_file.close()
 
-        # TODO: debug
 
 def oc_audio_trim(path: str, call_list: dict, track_no: int = 0):
     file, ext = path.split('.')
@@ -412,7 +420,7 @@ def oc_audio_trim(path: str, call_list: dict, track_no: int = 0):
 
     for ep in call_list:
         AC().octrim(clip, trims=call_list[ep], audio_file=f'{file}.wav', outfile=f'{ep}_cut.wav',
-                    chapter_file=f'{ep}_chapters.txt', gui=False)
+                    chapter_file=f'{ep}_chapters.txt')
 
 
 # Static helper functions
@@ -476,7 +484,7 @@ def _compress(a: List[int], b: List[int]) -> Tuple[List[int], List[int]]:
             a[i] -= diff
             b[i] -= diff
 
-    return a,b
+    return a, b
 
 
 # Decorator functions
