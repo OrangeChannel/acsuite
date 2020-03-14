@@ -78,6 +78,8 @@ class AC:
                 >> trims=(15,16)
 
         :param audio_file: `'/path/to/audio_file.wav'`
+            can also be a container file that uses a slice-able audio codec
+            i.e. a remuxed BDMV source into a .mkv file with FLAC / PCM audio: `'/path/to/remuxed_bdmv.mkv'`
 
         :param outfile: either a filename `'out.wav'` or a full path `'/path/to/out.wav'`
 
