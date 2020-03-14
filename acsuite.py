@@ -328,25 +328,20 @@ class AC:
         cut_args = [self.mkvmerge, '-o', self.outfile] +  delay_statement + ['--split', split_parts, '-D', '-S', '-B', '-M', '-T', '--no-global-tags', '--no-chapters', self.audio_file]
         run(cut_args)
 
-    def _f2ts(self, f: int, /, *, precision: int = 9) -> str:
+    def _f2ts(self, f: int) -> str:
         """Converts frame number to HH:mm:ss.nnnnnnnnn or HH:mm:ss.mmm timestamp based on clip's framerate."""
         if self.clip is None:
             raise ValueError(f'{g(n())}: clip needs to be specified')
 
-        t = round(10 ** precision * f * self.clip.fps ** -1 + .5) if precision == 3 else round(
-            10 ** precision * f * self.clip.fps ** -1)
+        t = round(10 ** 9 * f * self.clip.fps ** -1)
 
-        s = t / 10 ** precision
+        s = t / 10 ** 9
         m = s // 60
         s %= 60
         h = m // 60
         m %= 60
 
-        # OGM chapter files only support millisecond accuracy
-        if precision == 3:
-            return '{:02.0f}:{:02.0f}:{:06.3f}'.format(h, m, s)
-        else:
-            return '{:02.0f}:{:02.0f}:{:012.9f}'.format(h, m, s)
+        return f'{h:02.0f}:{m:02.0f}:{s:012.9f}'
 
     def _negative_to_positive(self, a: Union[List[int], int], b: Union[List[int], int]) \
             -> Union[Tuple[List[int], List[int]], Tuple[int, int]]:
