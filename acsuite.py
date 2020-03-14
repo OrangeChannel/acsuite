@@ -293,8 +293,8 @@ class AC:
         chap_s, chap_e = _compress(self.s, self.e)
         chap_e[-1] += 1  # needed to include last frame in virtual timeline
 
-        chap_s_ts = [self._f2ts(i, precision=3) for i in chap_s]
-        chap_e_ts = [self._f2ts(i, precision=3) for i in chap_e]
+        chap_s_ts = [self._f2ts(i) for i in chap_s]
+        chap_e_ts = [self._f2ts(i) for i in chap_e]
 
         if debug: return {'cut_s': cut_s, 'cut_e': cut_e, 'chap_s_ts': chap_s_ts, 'chap_e_ts': chap_e_ts}
 
@@ -304,7 +304,6 @@ class AC:
             if gui:
                 run([self.mkvtoolnixgui, '--edit-chapters', self.chapter_file])
 
-    # TODO: WHAT THE FUCK PYTHON
     def __cut_audio(self):
         """Uses mkvmerge to split and re-join the audio clips."""
         delay_statement = []
@@ -397,20 +396,6 @@ class AC:
         text_file = open(chapter_file, 'w')
         for i in lines: text_file.write(i + '\n')
         text_file.close()
-
-
-def oc_audio_trim(path: str, call_list: dict, track_no: int = 0):
-    file, ext = path.split('.')
-    if ext != 'wav':
-        ffmpeg = which('ffmpeg')
-        run([ffmpeg, '-i', path, '-map', f'a:{track_no}', f'{file}.wav'])
-
-    clip = vs.core.std.BlankClip(length=int(1E10))
-
-    for ep in call_list:
-        AC().octrim(clip, trims=call_list[ep], audio_file=f'{file}.wav', outfile=f'{ep}_cut.wav',
-                    chapter_file=f'{ep}_chapters.txt')
-
 
 # Static helper functions
 def _check_ordered(a: List[int], b: List[int]) -> bool:

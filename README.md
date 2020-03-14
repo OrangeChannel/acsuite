@@ -52,7 +52,6 @@ delete this chapter.
 - [Python 3.8+](https://www.python.org/downloads/)
 - [VapourSynth](https://github.com/vapoursynth/vapoursynth/releases)
 - [MKVToolNix](https://mkvtoolnix.download/downloads.html)
-- MKVToolNix GUI (optional)
 
 ### Installing
 
