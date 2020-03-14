@@ -307,31 +307,26 @@ class AC:
     # TODO: WHAT THE FUCK PYTHON
     def __cut_audio(self):
         """Uses mkvmerge to split and re-join the audio clips."""
-        ts_cmd = self.mkvmerge + '{delay} --split parts:'
+        delay_statement = []
 
-        for s, e in zip(self.cut_ts_s, self.cut_ts_e): ts_cmd += '{}-{},+'.format(s, e)
+        split_parts = 'parts:'
+        for s, e in zip(self.cut_ts_s, self.cut_ts_e):
+            split_parts += f'{s}-{e},+'
 
-        cut_cmd = ts_cmd[:-2]
+        split_parts = split_parts[:-2]
 
-        ident = run([self.mkvmerge, '--identify', self.audio_file], check=True, stdout=PIPE).stdout
-        identre = compile(r'Track ID (\d+): audio')
-        ret = (identre.search(ident.decode(getfilesystemencoding())) if ident else None)
-        tid = ret.group(1) if ret else '0'
-        delre = compile(r'DELAY ([-]?\d+)', flags=IGNORECASE)
-        ret = delre.search(self.audio_file)
+        identify_proc = run([self.mkvmerge, '--identify', self.audio_file], text=True, check=True, stdout=PIPE)
+        identify_pattern = compile(r'Track ID (\d+): audio')
+        if re_return_proc := identify_pattern.search(identify_proc.stdout) if identify_proc.stdout else None:
+            tid = re_return_proc.group(1) if re_return_proc else '0'
 
-        delay = '{0}:{1}'.format(tid, ret.group(1)) if ret else None
-        delay_statement = ' --sync {}'.format(delay) if delay else ''
+            filename_delay_pattern = compile(r'DELAY ([-]?\d+)', flags=IGNORECASE)
+            re_return_filename = filename_delay_pattern.search(self.audio_file)
 
-        cut_cmd += ' -o "{}" -D "{}"'.format(self.outfile, self.audio_file)
-        args = split(cut_cmd.format(delay=delay_statement))
-        cut_exec = Popen(args).returncode
+            delay_statement = ['--sync', f'{tid}:{re_return_filename.group(1)}'] if (tid and re_return_filename) else []
 
-        if cut_exec == 1:
-            print('Mkvmerge exited with warnings: 1')
-        elif cut_exec == 2:
-            print(args)
-            exit('Failed to execute mkvmerge: 2')
+        cut_args = [self.mkvmerge, '-o', self.outfile] +  delay_statement + ['--split', split_parts, '-D', '-S', '-B', '-M', '-T', '--no-global-tags', '--no-chapters', self.audio_file]
+        run(cut_args)
 
     def _f2ts(self, f: int, /, *, precision: int = 9) -> str:
         """Converts frame number to HH:mm:ss.nnnnnnnnn or HH:mm:ss.mmm timestamp based on clip's framerate."""
