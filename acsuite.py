@@ -8,10 +8,12 @@ Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 
 from fractions import Fraction
 from inspect import stack as n
-from re import compile, IGNORECASE
+from re import IGNORECASE, compile
+from shlex import split
 from shutil import which
 from string import ascii_uppercase
-from subprocess import PIPE, run, STDOUT
+from subprocess import run, STDOUT, Popen, PIPE
+from sys import getfilesystemencoding
 from typing import List, Tuple, Union
 from warnings import simplefilter, warn
 
@@ -297,31 +299,33 @@ class AC:
 
     def __cut_audio(self):
         """Uses mkvmerge to split and re-join the audio clips."""
-        ts_cmd = '--split parts:'
+        ts_cmd = self.mkvmerge + '{delay} --split parts:'
 
-        for s, e in zip(self.cut_ts_s, self.cut_ts_e):
-            ts_cmd += f'{s}-{e},+'
+        for s, e in zip(self.cut_ts_s, self.cut_ts_e): ts_cmd += '{}-{},+'.format(s, e)
 
-        ts_cmd = ts_cmd[:-2]
+        cut_cmd = ts_cmd[:-2]
 
-        identify_proc = run([self.mkvmerge, '--identify', self.audio_file], text=True, check=True, stdout=PIPE)
+        ident = run([self.mkvmerge, '--identify', self.audio_file], check=True, stdout=PIPE).stdout
+        identre = compile(r'Track ID (\d+): audio')
+        ret = (identre.search(ident.decode(getfilesystemencoding())) if ident else None)
+        tid = ret.group(1) if ret else '0'
+        delre = compile(r'DELAY ([-]?\d+)', flags=IGNORECASE)
+        ret = delre.search(self.audio_file)
 
-        identify_pattern = compile(r'Track ID (\d+): audio')
-        re_identify = identify_pattern.search(identify_proc.stdout) if identify_proc.stdout else None
-        track_id = re_identify.group(1) if re_identify else '0'
+        delay = '{0}:{1}'.format(tid, ret.group(1)) if ret else None
+        delay_statement = ' --sync {}'.format(delay) if delay else ''
 
-        delay_pattern = compile(r'DELAY ([-]?\d+)', flags=IGNORECASE)
-        re_delay = delay_pattern.search(self.audio_file)
+        cut_cmd += ' -o "{}" "{}"'.format(self.outfile, self.audio_file)
+        args = split(cut_cmd.format(delay=delay_statement))
+        cut_exec = Popen(args).returncode
 
-        delay_statement = ['--sync', f'{track_id}:{re_delay.group(1)}'] if re_delay else []
+        if cut_exec == 1:
+            print('Mkvmerge exited with warnings: 1')
+        elif cut_exec == 2:
+            print(args)
+            exit('Failed to execute mkvmerge: 2')
 
-        cut_args = [self.mkvmerge] + delay_statement + [ts_cmd, '-o', self.outfile, self.audio_file]
-
-        run(cut_args, text=True, stdout=STDOUT, stderr=STDOUT)
-
-        # TODO: debug
-
-    def _f2ts(self, f: int, *, precision: int = 9) -> str:
+    def _f2ts(self, f: int, /, *, precision: int = 9) -> str:
         """Converts frame number to HH:mm:ss.nnnnnnnnn or HH:mm:ss.mmm timestamp based on clip's framerate."""
         if self.clip is None:
             raise ValueError(f'{g(n())}: clip needs to be specified')
