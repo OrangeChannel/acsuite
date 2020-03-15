@@ -411,6 +411,11 @@ def _check_ordered(a: List[int], b: List[int]) -> bool:
 
 def _combine(a: List[int], b: List[int]) -> Tuple[List[int], List[int]]:
     """Eliminates continuous pairs: (a1,b1)(a2,b2) -> (a1,b2) if b1 == a2"""
+    if len(a) != len(b):
+        raise ValueError(f'{g(n())}: lists must be same length')
+    if len(a) == 1 and len(b) == 1:
+        return a, b
+
     ca, cb = [], []
     for i in range(len(a)):
         if i == 0:
@@ -434,10 +439,16 @@ def _combine(a: List[int], b: List[int]) -> Tuple[List[int], List[int]]:
 
 def _compress(a: List[int], b: List[int]) -> Tuple[List[int], List[int]]:
     """Compresses lists to become continuous. (5,9)(12,14) -> (0,4)(7,9) -> (0,4)(5,7)"""
+    if len(a) != len(b):
+        raise ValueError(f'{g(n())}: lists must be same length')
+
     if a[0] > 0:  # shift all values so that 'a' starts at 0
         init = a[0]
         a = [i - init for i in a]
         b = [i - init for i in b]
+
+    if len(a) == 1 and len(b) == 1:  # (5,9) -> (0,4)
+        return a, b
 
     index, diff = 1, 0  # initialize this loop
 

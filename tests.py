@@ -177,11 +177,13 @@ class ACsuiteTests(unittest.TestCase):
         self.assertEqual(acsuite._compress([1, 5, 11, 13], [3, 8, 12, 15]), ([0, 3, 7, 9], [2, 6, 8, 11]))
         self.assertEqual(acsuite._compress([1, 4, 8, 11, 14, 18, 24, 33, 36], [2, 7, 9, 13, 17, 20, 30, 35, 41]),
                          ([0, 2, 6, 8, 11, 15, 18, 25, 28], [1, 5, 7, 10, 14, 17, 24, 27, 33]))
+        self.assertEqual(acsuite._compress([5], [9]), ([0], [4]))
 
     def test_combine(self):
         self.assertEqual(acsuite._combine([0, 5, 9, 12, 17, 19, 25], [2, 8, 11, 14, 18, 20, 27]),
                          ([0, 5, 17, 25], [2, 14, 20, 27]))
         self.assertEqual(acsuite._combine([1, 3, 7, 10, 21, 45, 60, 72, 74, 82], [2, 5, 9, 20, 40, 50, 70, 73, 79, 90]), ([1, 7, 45, 60, 72, 82], [5, 40, 50, 70, 79, 90]))
+        self.assertEqual(acsuite._combine([5], [9]), ([5], [9]))
 
     # TODO: test_cut_audio
     # TODO: test_write_chapters
