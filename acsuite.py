@@ -1,19 +1,15 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
 __all__ = ['eztrim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '13 March 2020'
+__date__ = '15 March 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
 
-from fractions import Fraction
 from inspect import stack as n
-from re import IGNORECASE, compile
-from shlex import split
-from shutil import which
+from re import compile, IGNORECASE
 from string import ascii_uppercase
-from subprocess import run, STDOUT, Popen, PIPE
-from sys import getfilesystemencoding
+from subprocess import PIPE, run
 from typing import List, Tuple, Union
 from warnings import simplefilter, warn
 
