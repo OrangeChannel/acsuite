@@ -42,7 +42,7 @@ class AC:
                *,
                debug: bool = False):
         """
-        Simpler trimming function that follows VS slicing syntax.
+        Simple trimming function that follows VS slicing syntax.
 
         End frame is NOT inclusive.
 
@@ -151,7 +151,7 @@ class AC:
         run(cut_args)
 
     def _f2ts(self, f: int) -> str:
-        """Converts frame number to HH:mm:ss.nnnnnnnnn or HH:mm:ss.mmm timestamp based on clip's framerate."""
+        """Converts frame number to HH:mm:ss.nnnnnnnnn timestamp based on clip's framerate."""
         if self.clip is None:
             raise ValueError(f'{g(n())}: clip needs to be specified')
 
