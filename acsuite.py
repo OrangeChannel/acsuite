@@ -209,34 +209,6 @@ def _check_ordered(a: List[int], b: List[int]) -> bool:
     return True
 
 
-def _combine(a: List[int], b: List[int]) -> Tuple[List[int], List[int]]:
-    """Eliminates continuous pairs: (a1,b1)(a2,b2) -> (a1,b2) if b1 == a2"""
-    if len(a) != len(b):
-        raise ValueError(f'{g(n())}: lists must be same length')
-    if len(a) == 1 and len(b) == 1:
-        return a, b
-
-    ca, cb = [], []
-    for i in range(len(a)):
-        if i == 0:
-            ca.append(a[i])
-            if b[i] + 1 != a[i + 1]:
-                cb.append(b[i])
-            continue
-        elif i < len(a) - 1:
-            if a[i] - 1 != b[i - 1]:  # should we skip the start?
-                ca.append(a[i])
-            if b[i] + 1 != a[i + 1]:  # should we skip the end?
-                cb.append(b[i])
-            continue
-        elif i == len(a) - 1:
-            if a[i] - 1 != b[i - 1]:
-                ca.append(a[i])
-            cb.append(b[i])
-
-    return ca, cb
-
-
 # Decorator functions
 g = lambda x: x[0][3]  # g(inspect.stack()) inside a function will print its name
 
