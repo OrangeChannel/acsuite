@@ -22,53 +22,53 @@ class ACsuiteTests(unittest.TestCase):
 
     def test_eztrim(self):
         with self.assertRaisesRegex(TypeError, 'trims must be a list of 2-tuples'):
-            ac.eztrim(self.BLANK_CLIP, trims='str', audio_file='', outfile='')
+            acsuite.eztrim(self.BLANK_CLIP, trims='str', audio_file='', outfile='')
 
         with self.assertRaisesRegex(ValueError, 'must have 2 elements'):
-            ac.eztrim(self.BLANK_CLIP, trims=(1, 2, 3), audio_file='', outfile='')
+            acsuite.eztrim(self.BLANK_CLIP, trims=(1, 2, 3), audio_file='', outfile='')
 
         with self.assertRaisesRegex(TypeError, 'is not a tuple'):
-            ac.eztrim(self.BLANK_CLIP, trims=[(1, 2), 'str'], audio_file='', outfile='')
+            acsuite.eztrim(self.BLANK_CLIP, trims=[(1, 2), 'str'], audio_file='', outfile='')
 
         with self.assertRaisesRegex(ValueError, 'needs 2 elements'):
-            ac.eztrim(self.BLANK_CLIP, trims=[(1, 2), (3, 4, 5)], audio_file='', outfile='')
+            acsuite.eztrim(self.BLANK_CLIP, trims=[(1, 2), (3, 4, 5)], audio_file='', outfile='')
 
         with self.assertRaisesRegex(ValueError, '2 ints'):
-            ac.eztrim(self.BLANK_CLIP, trims=[(1, 2), (3, 'str')], audio_file='', outfile='')
+            acsuite.eztrim(self.BLANK_CLIP, trims=[(1, 2), (3, 'str')], audio_file='', outfile='')
 
         with self.assertRaisesRegex(ValueError, 'is not logical'):
-            ac.eztrim(self.BLANK_CLIP, trims=(-95, -99), audio_file='', outfile='')
+            acsuite.eztrim(self.BLANK_CLIP, trims=(-95, -99), audio_file='', outfile='')
 
         with self.assertRaisesRegex(ValueError, 'is not logical'):
-            ac.eztrim(self.BLANK_CLIP, trims=(1, 1), audio_file='', outfile='')
+            acsuite.eztrim(self.BLANK_CLIP, trims=(1, 1), audio_file='', outfile='')
 
         with self.assertRaisesRegex(ValueError, 'are not logical'):
-            ac.eztrim(self.BLANK_CLIP, trims=[(1, 10), (2, -95)], audio_file='', outfile='')
+            acsuite.eztrim(self.BLANK_CLIP, trims=[(1, 10), (2, -95)], audio_file='', outfile='')
 
         with self.assertWarns(SyntaxWarning):
-            ac.eztrim(self.BLANK_CLIP, trims=[(5, 10)], audio_file='', outfile='', debug=True)
+            acsuite.eztrim(self.BLANK_CLIP, trims=[(5, 10)], audio_file='', outfile='', debug=True)
 
         self.assertEqual(
-            ac.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
+            acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
                       outfile='', debug=True)['s'], [3, 23, 48, 50, 90, 97])
 
         self.assertEqual(
-            ac.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
+            acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
                       outfile='', debug=True)['e'], [22, 40, 49, 80, 95, 100])
 
         self.assertEqual(
-            ac.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
+            acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
                       outfile='', debug=True)['cut_ts_s'],
             ['00:00:00.600000000', '00:00:04.600000000', '00:00:09.600000000', '00:00:10.000000000',
              '00:00:18.000000000', '00:00:19.400000000'])
 
         self.assertEqual(
-            ac.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
+            acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
                       outfile='', debug=True)['cut_ts_e'],
             ['00:00:04.400000000', '00:00:08.000000000', '00:00:09.800000000', '00:00:16.000000000',
              '00:00:19.000000000', '00:00:20.000000000'])
 
-        self.assertEqual(ac.eztrim(self.BLANK_CLIP, (3, -13), audio_file='', outfile='', debug=True), {'s': 3, 'e': 87, 'cut_ts_s': ['00:00:00.600000000'], 'cut_ts_e': ['00:00:17.400000000']})
+        self.assertEqual(acsuite.eztrim(self.BLANK_CLIP, (3, -13), audio_file='', outfile='', debug=True), {'s': 3, 'e': 87, 'cut_ts_s': ['00:00:00.600000000'], 'cut_ts_e': ['00:00:17.400000000']})
 
     def test_check_ordered(self):
         self.assertFalse(acsuite._check_ordered([0, 5, 8], [1, 9, 10]))
