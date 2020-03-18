@@ -1,7 +1,7 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
 __all__ = ['eztrim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '17 March 2020'
+__date__ = '18 March 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
@@ -199,6 +199,12 @@ class AC:
 # Static helper functions
 def _check_ordered(a: List[int], b: List[int]) -> bool:
     """Checks if lists follow logical python slicing."""
+    if len(a) != len(b):
+        raise ValueError(f'{g(n())}: lists must be same length')
+    if len(a) == 1 and len(b) == 1:
+        if a[0] >= b[0]:
+            return False
+
     if not all(a[i] < a[i + 1] for i in range(len(a) - 1)):
         return False  # checks if list a is ordered L to G
     if not all(b[i] < a[i + 1] for i in range(len(a) - 1)):
