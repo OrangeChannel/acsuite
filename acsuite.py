@@ -1,7 +1,7 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
 __all__ = ['eztrim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '18 March 2020'
+__date__ = '19 March 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
@@ -23,7 +23,6 @@ class AC:
     def __init__(self, clip=None, audio_file=None, outfile=None):
         """Add executable paths here if not already in PATH."""
         self.mkvmerge = r'mkvmerge'
-        self.mkvtoolnixgui = r'mkvtoolnix-gui'
         self.s = []
         self.e = []
         self.cut_ts_s = []
