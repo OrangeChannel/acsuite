@@ -3,7 +3,7 @@
 audiocutter(.py) replacement for VapourSynth.
 
 Allows for easy frame-based cutting/trimming/splicing of audio files
-from within a VapourSynth environment.
+using VapourSynth clip information.
 
 
 ## Functions:
@@ -45,23 +45,22 @@ eztrim(core.lsmas.LWLibavSource(file), (0, -22), file, 'cut.wav')
 ## Getting Started
 
 ### Dependencies
-- [Python 3.8+](https://www.python.org/downloads/)
-- [VapourSynth](https://github.com/vapoursynth/vapoursynth/releases)
 - [MKVToolNix](https://mkvtoolnix.download/downloads.html)
+- [VapourSynth R49+](https://github.com/vapoursynth/vapoursynth/releases)
 
 ### Installing
 
 #### Windows
 
 1. Navigate to your Python installation folder (i.e. `C:\Python\`).
-1. Download the `acsuite.py` file to the site-packages folder (`C:\Python\Lib\site-packages\`).
+1. Download the [`acsuite.py`](https://github.com/OrangeChannel/acsuite/releases) file to the site-packages folder (`C:\Python\Lib\site-packages\`).
 
 #### Arch Linux
 
-Install the [AUR package](https://aur.archlinux.org/packages/vapoursynth-plugin-acsuite-git/) `vapoursynth-plugin-acsuite-git` with your favorite AUR helper:
+Install the [AUR package](https://aur.archlinux.org/packages/vapoursynth-tools-acsuite-git/) `vapoursynth-tools-acsuite-git` with your favorite AUR helper:
 
 ```sh
-yay -S vapoursynth-plugin-acsuite-git
+yay -S vapoursynth-tools-acsuite-git
 ```
 
 #### Gentoo Linux
