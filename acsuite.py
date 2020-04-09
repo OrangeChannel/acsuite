@@ -1,7 +1,7 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
 __all__ = ['eztrim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '19 March 2020'
+__date__ = '9 April 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
@@ -74,7 +74,7 @@ class AC:
             can also be a container file that uses a slice-able audio codec
             i.e. a remuxed BDMV source into a .mkv file with FLAC / PCM audio: `'/path/to/remuxed_bdmv.mkv'`
 
-        :param outfile: either a filename `'out.wav'` or a full path `'/path/to/out.wav'`
+        :param outfile: either a filename `'out.mka'` or a full path `'/path/to/out.mka'`
 
         OUTPUTS: a cut/spliced audio file in either the script's directoy or the path specified with `outfile`
         """

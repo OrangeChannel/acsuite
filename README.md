@@ -24,7 +24,7 @@ src = core.lsmas.LWLibavSource(file)
 clip = src[3:22]+src[23:40]+src[48]+src[50:-20]+src[-10:-5]+src[97:]
 
 # `clip` arg should be the uncut/untrimmed source that you are trimming from
-eztrim(src, [(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)], afile, 'cut.wav')
+eztrim(src, [(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)], afile, 'cut.mka')
 ```
 
 ##### MKV container example
@@ -38,7 +38,7 @@ from acsuite import eztrim
 file = r'/path/to/remuxed_bdmv.mkv'  # Video: V_MPEG4/ISO/AVC, Audio: A_PCM/INT/LIT
 
 # clip = src[0:-22]
-eztrim(core.lsmas.LWLibavSource(file), (0, -22), file, 'cut.wav')
+eztrim(core.lsmas.LWLibavSource(file), (0, -22), file, 'cut.mka')
 ```
 ---
 
