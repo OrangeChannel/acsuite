@@ -136,7 +136,7 @@ class AC:
 
         split_parts = split_parts[:-2]
 
-        identify_proc = run([self.mkvmerge, '--identify', self.audio_file], text=True, check=True, stdout=PIPE)
+        identify_proc = run([self.mkvmerge, '--output-charset', 'utf-8', '--identify', self.audio_file], text=True, check=True, stdout=PIPE, encoding='utf-8')
         identify_pattern = compile(r'Track ID (\d+): audio')
         if re_return_proc := identify_pattern.search(identify_proc.stdout) if identify_proc.stdout else None:
             tid = re_return_proc.group(1) if re_return_proc else '0'
