@@ -1,24 +1,18 @@
 import unittest
 from fractions import Fraction
 
-import acsuite
 import vapoursynth as vs
 
-ac = acsuite.AC()
-core = vs.core
+import acsuite
 
 
 class ACsuiteTests(unittest.TestCase):
-    BLANK_CLIP = core.std.BlankClip(format=vs.YUV420P8, length=100, fpsnum=5, fpsden=1)
-
-    def setUp(self, clip=BLANK_CLIP) -> None:
-        ac.__init__(clip)
+    BLANK_CLIP = vs.core.std.BlankClip(format=vs.YUV420P8, length=100, fpsnum=5, fpsden=1)
 
     def test_default_clip(self):
-        self.assertEqual(self.BLANK_CLIP.num_frames, 100, '100 frames were expected')
-        self.assertEqual(self.BLANK_CLIP.fps, Fraction(5, 1), '5 fps was expected')
-        self.assertEqual(ac._f2ts(self.BLANK_CLIP.num_frames), '00:00:20.000000000',
-                         '20 sec was expected')
+        self.assertEqual(self.BLANK_CLIP.num_frames, 100)
+        self.assertEqual(self.BLANK_CLIP.fps, Fraction(5, 1))
+        self.assertEqual(acsuite._f2ts(self.BLANK_CLIP, self.BLANK_CLIP.num_frames), '00:00:20.000000000')
 
     def test_eztrim(self):
         with self.assertRaisesRegex(TypeError, 'trims must be a list of 2-tuples'):
@@ -50,25 +44,26 @@ class ACsuiteTests(unittest.TestCase):
 
         self.assertEqual(
             acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
-                      outfile='', debug=True)['s'], [3, 23, 48, 50, 90, 97])
+                           outfile='', debug=True)['s'], [3, 23, 48, 50, 90, 97])
 
         self.assertEqual(
             acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
-                      outfile='', debug=True)['e'], [22, 40, 49, 80, 95, 100])
+                           outfile='', debug=True)['e'], [22, 40, 49, 80, 95, 100])
 
         self.assertEqual(
             acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
-                      outfile='', debug=True)['cut_ts_s'],
+                           outfile='', debug=True)['cut_ts_s'],
             ['00:00:00.600000000', '00:00:04.600000000', '00:00:09.600000000', '00:00:10.000000000',
              '00:00:18.000000000', '00:00:19.400000000'])
 
         self.assertEqual(
             acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
-                      outfile='', debug=True)['cut_ts_e'],
+                           outfile='', debug=True)['cut_ts_e'],
             ['00:00:04.400000000', '00:00:08.000000000', '00:00:09.800000000', '00:00:16.000000000',
              '00:00:19.000000000', '00:00:20.000000000'])
 
-        self.assertEqual(acsuite.eztrim(self.BLANK_CLIP, (3, -13), audio_file='', outfile='', debug=True), {'s': 3, 'e': 87, 'cut_ts_s': ['00:00:00.600000000'], 'cut_ts_e': ['00:00:17.400000000']})
+        self.assertEqual(acsuite.eztrim(self.BLANK_CLIP, (3, -13), audio_file='', outfile='', debug=True),
+                         {'s': 3, 'e': 87, 'cut_ts_s': ['00:00:00.600000000'], 'cut_ts_e': ['00:00:17.400000000']})
 
     def test_check_ordered(self):
         self.assertFalse(acsuite._check_ordered([0, 5, 8], [1, 9, 10]))
@@ -77,31 +72,25 @@ class ACsuiteTests(unittest.TestCase):
         self.assertTrue(acsuite._check_ordered([0, 2, 4], [1, 3, 5]))
 
     def test_f2ts(self):
-        self.assertEqual(ac._f2ts(0), '00:00:00.000000000')
-        self.assertEqual(ac._f2ts(69), '00:00:13.800000000')
-
-        with self.assertRaisesRegex(ValueError, 'clip needs to be specified'):
-            acsuite.AC()._f2ts(0)
+        self.assertEqual(acsuite._f2ts(self.BLANK_CLIP, 0), '00:00:00.000000000')
+        self.assertEqual(acsuite._f2ts(self.BLANK_CLIP, 69), '00:00:13.800000000')
 
     def test_negative_to_positive(self):
         with self.assertRaisesRegex(ValueError, 'out of bounds'):
-            ac._negative_to_positive([0, 3, 101], [0, 1, 2])
+            acsuite._negative_to_positive(self.BLANK_CLIP, [0, 3, 101], [0, 1, 2])
         with self.assertRaisesRegex(ValueError, 'out of bounds'):
-            ac._negative_to_positive([0, 3, 98], [0, 1, -102])
+            acsuite._negative_to_positive(self.BLANK_CLIP, [0, 3, 98], [0, 1, -102])
 
         with self.assertRaisesRegex(ValueError, 'same length'):
-            ac._negative_to_positive([1, 2], [3, 4, 5])
+            acsuite._negative_to_positive(self.BLANK_CLIP, [1, 2], [3, 4, 5])
 
-        self.assertEqual(ac._negative_to_positive([1, 4, 5], [10, 75, 85]), ([1, 4, 5], [10, 75, 85]))
-        self.assertEqual(ac._negative_to_positive([4, 0, 5], [10, 20, 1]), ([4, 0, 5], [10, 20, 1]))
-        self.assertEqual(ac._negative_to_positive([4, 0, 5], [10, 0, 1]), ([4, 0, 5], [10, 100, 1]))
-        self.assertEqual(ac._negative_to_positive([-10, 0, -5], [-10, 0, 5]),
+        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP, [1, 4, 5], [10, 75, 85]), ([1, 4, 5], [10, 75, 85]))
+        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP, [4, 0, 5], [10, 20, 1]), ([4, 0, 5], [10, 20, 1]))
+        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP, [4, 0, 5], [10, 0, 1]), ([4, 0, 5], [10, 100, 1]))
+        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP, [-10, 0, -5], [-10, 0, 5]),
                          ([90, 0, 95], [90, 100, 5]))
-        self.assertEqual(ac._negative_to_positive([0], [-12]), ([0], [88]))
-        self.assertEqual(ac._negative_to_positive([-12], [0]), ([88], [100]))
-
-    # TODO: test_cut_audio
-    # TODO: test_write_chapters
+        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP, [0], [-12]), ([0], [88]))
+        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP, [-12], [0]), ([88], [100]))
 
 
 if __name__ == '__main__':
