@@ -83,7 +83,7 @@ named `custom_name.mka` in the directory the script is running from.
 Install the [AUR package](https://aur.archlinux.org/packages/vapoursynth-tools-acsuite-git/) `vapoursynth-tools-acsuite-git` with your favorite AUR helper:
 
 ```sh
-yay -S vapoursynth-tools-acsuite-git
+$ yay -S vapoursynth-tools-acsuite-git
 ```
 
 #### Gentoo Linux
@@ -92,7 +92,7 @@ Install via the [VapourSynth portage tree](https://github.com/4re/vapoursynth-po
 
 ## Help!
 
-Use Python's builtin `help`: 
+Use Python's builtin `help()`: 
 
 ```py
 help('acsuite')
