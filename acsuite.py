@@ -1,13 +1,12 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
 __all__ = ['eztrim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '2 May 2020'
+__date__ = '5 June 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
 
 import os
-from inspect import stack as n
 from pathlib import Path
 from re import compile, IGNORECASE
 from shutil import which
@@ -76,40 +75,40 @@ def eztrim(clip: vs.VideoNode,
     """
     if not mkvmerge_path:
         if not (mkvmerge_path := which('mkvmerge')):
-            raise FileNotFoundError(f'{g(n())}: mkvmerge executable not found')
+            raise FileNotFoundError('eztrim: mkvmerge executable not found')
 
     audio_file = Path(audio_file)
     if not audio_file.exists():
-        raise FileNotFoundError(f'{g(n())}: {audio_file} not found')
+        raise FileNotFoundError('eztrim: {audio_file} not found')
 
     if not outfile:
         outfile = Path(os.path.splitext(audio_file)[0] + '_cut.mka')
     else:
         outfile = Path(outfile)
         if os.path.splitext(outfile)[1] != '.mka':
-            warn(f'{g(n())}: outfile does not have a `.mka` extension, one will be added for you', SyntaxWarning)
+            warn('eztrim: outfile does not have a `.mka` extension, one will be added for you', SyntaxWarning)
             outfile = Path(os.path.splitext(outfile)[0] + '.mka')
 
     # error checking
     single = False
     if not isinstance(trims, (list, tuple)):
-        raise TypeError(f'{g(n())}: trims must be a list of 2-tuples (or just one 2-tuple)')
+        raise TypeError('eztrim: trims must be a list of 2-tuples (or just one 2-tuple)')
     if len(trims) == 1 and type(trims) == list:
-        warn(f'{g(n())}: using a list of one 2-tuple is not recommended; for a single trim, directly use a tuple: `trims=(5,-2)` instead of `trims=[(5,-2)]`', SyntaxWarning)
+        warn('eztrim: using a list of one 2-tuple is not recommended; for a single trim, directly use a tuple: `trims=(5,-2)` instead of `trims=[(5,-2)]`', SyntaxWarning)
     for trim in trims:
         if type(trim) == int:  # if first element is an int, assume it's a single tuple
             single = True
             if len(trims) != 2:
-                raise ValueError(f'{g(n())}: the trim must have 2 elements')
+                raise ValueError('eztrim: the trim must have 2 elements')
             break
         else:  # makes sure to error check only for multiple tuples
             if not isinstance(trim, tuple):
-                raise TypeError(f'{g(n())}: the trim {trim} is not a tuple')
+                raise TypeError('eztrim: the trim {trim} is not a tuple')
             if len(trim) != 2:
-                raise ValueError(f'{g(n())}: the trim {trim} needs 2 elements')
+                raise ValueError('eztrim: the trim {trim} needs 2 elements')
             for i in trim:
                 if type(i) != int:
-                    raise ValueError(f'{g(n())}: the trim {trim} must have 2 ints')
+                    raise ValueError('eztrim: the trim {trim} must have 2 ints')
 
     starts, ends, cut_ts_s, cut_ts_e = [], [], [], []
 
@@ -124,7 +123,7 @@ def eztrim(clip: vs.VideoNode,
 
     if single:
         if ends <= starts:
-            raise ValueError(f'{g(n())}: the trim {trims} is not logical')
+            raise ValueError('eztrim: the trim {trims} is not logical')
         cut_ts_s.append(_f2ts(clip, starts))
         cut_ts_e.append(_f2ts(clip, ends))
     else:
@@ -132,7 +131,7 @@ def eztrim(clip: vs.VideoNode,
             cut_ts_s = [_f2ts(clip, f) for f in starts]
             cut_ts_e = [_f2ts(clip, f) for f in ends]
         else:
-            raise ValueError(f'{g(n())}: the trims are not logical')
+            raise ValueError('eztrim: the trims are not logical')
 
     if debug: return {'s': starts, 'e': ends, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
 
@@ -186,17 +185,17 @@ def _negative_to_positive(clip: vs.VideoNode, a: Union[List[int], int], b: Union
     # speed-up analysis of a single trim
     if type(a) == int and type(b) == int:
         if abs(a) > num_frames or abs(b) > num_frames:
-            raise ValueError(f'{g(n())}: {max(abs(a), abs(b))} is out of bounds')
+            raise ValueError('_negative_to_positive: {max(abs(a), abs(b))} is out of bounds')
         return a if a >= 0 else num_frames + a, b if b > 0 else num_frames + b
 
     positive_a, positive_b = [], []
 
     if len(a) != len(b):
-        raise ValueError(f'{g(n())}: lists must be same length')
+        raise ValueError('_negative_to_positive: lists must be same length')
 
     for x, y in zip(a, b):
         if abs(x) > num_frames or abs(y) > num_frames:
-            raise ValueError(f'{g(n())}: {max(abs(x), abs(y))} is out of bounds')
+            raise ValueError('_negative_to_positive: {max(abs(x), abs(y))} is out of bounds')
 
     if all(i >= 0 for i in a) and all(i > 0 for i in b): return a, b
 
@@ -211,7 +210,7 @@ def _negative_to_positive(clip: vs.VideoNode, a: Union[List[int], int], b: Union
 def _check_ordered(a: List[int], b: List[int]) -> bool:
     """Checks if lists follow logical python slicing."""
     if len(a) != len(b):
-        raise ValueError(f'{g(n())}: lists must be same length')
+        raise ValueError('_check_ordered: lists must be same length')
     if len(a) == 1 and len(b) == 1:
         if a[0] >= b[0]:
             return False
@@ -224,7 +223,3 @@ def _check_ordered(a: List[int], b: List[int]) -> bool:
         return False  # makes sure pair is at least one frame long
 
     return True
-
-
-# Decorator functions
-g = lambda x: x[0][3]  # g(inspect.stack()) inside a function will print its name
