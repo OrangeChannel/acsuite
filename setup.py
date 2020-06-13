@@ -1,6 +1,6 @@
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("README.md") as fh:
     long_description = fh.read()
 
 setuptools.setup(
@@ -24,8 +24,8 @@ setuptools.setup(
     ],
     keywords="audio vapoursynth encoding trim cut",
     project_urls={
-        'Documentation': 'https://github.com/OrangeChannel/acsuite/',
-        'Source': 'https://github.com/OrangeChannel/acsuite/',
+        'Documentation': 'https://orangechannel.github.io/acsuite/html/index.html',
+        'Source': 'https://github.com/OrangeChannel/acsuite/blob/master/acsuite/__init__.py',
         'Tracker': 'https://github.com/OrangeChannel/acsuite/issues',
     },
     packages=setuptools.find_packages(exclude=['tests']),

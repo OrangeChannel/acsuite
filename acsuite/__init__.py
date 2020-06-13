@@ -11,7 +11,7 @@ from pathlib import Path
 from re import compile, IGNORECASE
 from shutil import which
 from subprocess import PIPE, run
-from typing import List, Optional, Tuple, Union
+from typing import cast, Dict, List, Optional, Tuple, Union
 from warnings import simplefilter, warn
 
 import vapoursynth as vs
@@ -28,7 +28,8 @@ def eztrim(clip: vs.VideoNode,
            mkvmerge_path: Optional[Union[Path, str]] = None,
            ffmpeg_path: Optional[Union[Path, str]] = None,
            quiet: bool = False,
-           debug: bool = False):
+           debug: bool = False
+           ) -> Optional[Dict[str, Union[List[int], List[str]]]]:
     """
     Simple trimming function that follows VS slicing syntax.
 
@@ -45,11 +46,6 @@ def eztrim(clip: vs.VideoNode,
     >> trims=(3,-13)
 
     :param clip: needed to determine framerate for audio timecodes and `num_frames` for negative indexing
-        :bit depth: ANY
-        :color family: ANY
-        :float precision: ANY
-        :sample type: ANY
-        :subsampling: ANY
 
     :param trims: either a list of 2-tuples, or one tuple of 2 ints
         empty slicing must represented with a `0`
@@ -75,6 +71,8 @@ def eztrim(clip: vs.VideoNode,
 
     :param quiet: suppress most console output
 
+    :return: if ``debug`` is ``True``\ , returns a dictionary of values for testing, otherwise returns ``None``\ .
+
     OUTPUTS: a cut/spliced audio file in either the script's directoy or the path specified with `outfile`
     """
     if not mkvmerge_path:
@@ -94,50 +92,45 @@ def eztrim(clip: vs.VideoNode,
             outfile = Path(os.path.splitext(outfile)[0] + '.mka')
 
     # error checking
-    single = False
     if not isinstance(trims, (list, tuple)):
         raise TypeError('eztrim: trims must be a list of 2-tuples (or just one 2-tuple)')
-    if len(trims) == 1 and type(trims) == list:
+    if len(trims) == 1 and isinstance(trims, list):
         warn('eztrim: using a list of one 2-tuple is not recommended; for a single trim, directly use a tuple: `trims=(5,-2)` instead of `trims=[(5,-2)]`', SyntaxWarning)
-    for trim in trims:
-        if type(trim) == int:  # if first element is an int, assume it's a single tuple
-            single = True
-            if len(trims) != 2:
-                raise ValueError('eztrim: the trim must have 2 elements')
-            break
-        else:  # makes sure to error check only for multiple tuples
+    if isinstance(trims, list):
+        for trim in trims:
             if not isinstance(trim, tuple):
                 raise TypeError('eztrim: the trim {trim} is not a tuple')
             if len(trim) != 2:
                 raise ValueError('eztrim: the trim {trim} needs 2 elements')
             for i in trim:
-                if type(i) != int:
+                if not isinstance(i, int):
                     raise ValueError('eztrim: the trim {trim} must have 2 ints')
 
-    starts, ends, cut_ts_s, cut_ts_e = [], [], [], []
-
-    if single:
-        starts, ends = trims  # directly un-pack values from the single trim
-    else:
-        for s, e in trims:
-            starts.append(s)
-            ends.append(e)
-
-    starts, ends = _negative_to_positive(clip, starts, ends)
-
-    if single:
-        if ends <= starts:
+    if isinstance(trims, tuple):
+        if len(trims) != 2:
+            raise ValueError('eztrim: the trim must have 2 elements')
+        start: int = trims[0]
+        end: int = trims[1]  # directly un-pack values from the single trim
+        start, end = cast(Tuple[int, int], _negative_to_positive(clip, start, end))
+        if end <= start:
             raise ValueError('eztrim: the trim {trims} is not logical')
-        cut_ts_s.append(_f2ts(clip, starts))
-        cut_ts_e.append(_f2ts(clip, ends))
+        cut_ts_s: List[str] = [_f2ts(clip, start)]
+        cut_ts_e: List[str] = [_f2ts(clip, end)]
     else:
+        starts: List[int] = [s for s, e in trims]
+        ends: List[int] = [e for s, e in trims]
+        starts, ends = cast(Tuple[List[int], List[int]], _negative_to_positive(clip, starts, ends))
         if _check_ordered(starts, ends):
             cut_ts_s = [_f2ts(clip, f) for f in starts]
             cut_ts_e = [_f2ts(clip, f) for f in ends]
         else:
             raise ValueError('eztrim: the trims are not logical')
 
-    if debug: return {'s': starts, 'e': ends, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
+    if debug:
+        if isinstance(trims, list):
+            return {'s': starts, 'e': ends, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
+        elif isinstance(trims, tuple):
+            return {'s': start, 'e': end, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
 
     delay_statement = []
 
@@ -158,7 +151,7 @@ def eztrim(clip: vs.VideoNode,
         delay_statement = ['--sync', f'{tid}:{re_return_filename.group(1)}'] if (tid and re_return_filename) else []
 
     mkvmerge_silence = ['--quiet'] if quiet else []
-    cut_args = [mkvmerge_path] + mkvmerge_silence + ['-o', str(outfile)] +  delay_statement + ['--split', split_parts, '-D', '-S', '-B', '-M', '-T', '--no-global-tags', '--no-chapters', str(audio_file)]
+    cut_args = [str(mkvmerge_path)] + mkvmerge_silence + ['-o', str(outfile)] +  delay_statement + ['--split', split_parts, '-D', '-S', '-B', '-M', '-T', '--no-global-tags', '--no-chapters', str(audio_file)]
     run(cut_args)
 
     if ffmpeg_path is None:
@@ -166,7 +159,7 @@ def eztrim(clip: vs.VideoNode,
 
     if ffmpeg_path:
         ffmpeg_silence = ['-loglevel', '16'] if quiet else []
-        run([ffmpeg_path, '-hide_banner'] + ffmpeg_silence + ['-i', str(outfile), os.path.splitext(outfile)[0] + '.wav'])
+        run([str(ffmpeg_path), '-hide_banner'] + ffmpeg_silence + ['-i', str(outfile), os.path.splitext(outfile)[0] + '.wav'])
         os.remove(outfile)
 
 
@@ -189,27 +182,27 @@ def _negative_to_positive(clip: vs.VideoNode, a: Union[List[int], int], b: Union
     num_frames = clip.num_frames
 
     # speed-up analysis of a single trim
-    if type(a) == int and type(b) == int:
+    if isinstance(a, int) and isinstance(b, int):
         if abs(a) > num_frames or abs(b) > num_frames:
             raise ValueError('_negative_to_positive: {max(abs(a), abs(b))} is out of bounds')
         return a if a >= 0 else num_frames + a, b if b > 0 else num_frames + b
 
-    positive_a, positive_b = [], []
+    else:
+        a = cast(List[int], a)
+        b = cast(List[int], b)
+        if len(a) != len(b):
+            raise ValueError('_negative_to_positive: lists must be same length')
 
-    if len(a) != len(b):
-        raise ValueError('_negative_to_positive: lists must be same length')
+        for x, y in zip(a, b):
+            if abs(x) > num_frames or abs(y) > num_frames:
+                raise ValueError('_negative_to_positive: {max(abs(x), abs(y))} is out of bounds')
 
-    for x, y in zip(a, b):
-        if abs(x) > num_frames or abs(y) > num_frames:
-            raise ValueError('_negative_to_positive: {max(abs(x), abs(y))} is out of bounds')
+        if all(i >= 0 for i in a) and all(i > 0 for i in b): return a, b
 
-    if all(i >= 0 for i in a) and all(i > 0 for i in b): return a, b
+        positive_a = [x if x >= 0 else num_frames + x for x in a]
+        positive_b = [y if y > 0 else num_frames + y for y in b]
 
-    for x, y in zip(a, b):
-        positive_a.append(x if x >= 0 else num_frames + x)
-        positive_b.append(y if y > 0 else num_frames + y)
-
-    return positive_a, positive_b
+        return positive_a, positive_b
 
 
 # Static helper functions
