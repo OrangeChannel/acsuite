@@ -73,11 +73,6 @@ named `custom_name.mka` in the directory the script is running from.
 
 ### Installing
 
-#### Windows
-
-1. Navigate to your Python installation folder (i.e. `C:\Python\`).
-1. Download the [`acsuite.py`](https://github.com/OrangeChannel/acsuite/releases) file to the site-packages folder (`C:\Python\Lib\site-packages\`).
-
 #### Arch Linux
 
 Install the [AUR package](https://aur.archlinux.org/packages/vapoursynth-tools-acsuite-git/) `vapoursynth-tools-acsuite-git` with your favorite AUR helper:
@@ -90,9 +85,25 @@ $ yay -S vapoursynth-tools-acsuite-git
 
 Install via the [VapourSynth portage tree](https://github.com/4re/vapoursynth-portage).
 
+#### Windows / Other
+
+Use the [Python Package Index (PyPI / pip)](https://pypi.org/project/acsuite-orangechannel/#description):
+
+```sh
+python3 -m pip install --user --upgrade acsuite-orangechannel
+```
+
+or simply
+
+```sh
+pip install acsuite-orangechannel
+```
+
+if you are able to use a `pip` executable directly.
+
 ## Help!
 
-Use Python's builtin `help()`: 
+Check out the [documentation](https://orangechannel.github.io/acsuite/html/index.html) or use Python's builtin `help()`: 
 
 ```py
 help('acsuite')
