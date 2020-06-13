@@ -1,0 +1,233 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>acsuite documentation &mdash; acsuite 4.1.0 documentation</title>
+
+
+
+
+
+
+
+
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+
+
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+
+
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+
+
+  <div class="wy-grid-for-nav">
+
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+            <a href="#" class="icon icon-home"> acsuite
+
+
+
+          </a>
+
+
+
+
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+
+
+
+
+
+
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">acsuite documentation</a></li>
+</ul>
+</div>
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+
+      <nav class="wy-nav-top" aria-label="top navigation">
+
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">acsuite</a>
+
+      </nav>
+
+
+      <div class="wy-nav-content">
+
+        <div class="rst-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+
+      <li><a href="#">Docs</a> &raquo;</li>
+
+      <li>acsuite documentation</li>
+
+
+      <li class="wy-breadcrumbs-aside">
+
+
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+
+
+      </li>
+
+  </ul>
+
+
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <div class="section" id="acsuite-documentation">
+<h1>acsuite documentation<a class="headerlink" href="#acsuite-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-acsuite"></span><p>Frame-based cutting/trimming/splicing of audio with VapourSynth.</p>
+<dl class="py function">
+<dt id="acsuite.eztrim">
+<code class="sig-prename descclassname">acsuite.</code><code class="sig-name descname">eztrim</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">clip</span></em>, <em class="sig-param"><span class="n">trims</span></em>, <em class="sig-param"><span class="n">audio_file</span></em>, <em class="sig-param"><span class="n">outfile</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">mkvmerge_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ffmpeg_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">quiet</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#acsuite.eztrim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple trimming function that follows VS slicing syntax.</p>
+<p>End frame is NOT inclusive.</p>
+<p>For a 100 frame long VapourSynth clip (src[:100]):</p>
+<p>&gt; src[3:22]+src[23:40]+src[48]+src[50:-20]+src[-10:-5]+src[97:]
+can be (almost) directly entered as
+&gt; trims=[(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)]</p>
+<p>&gt;&gt; src[3:-13]
+can be directly entered as
+&gt;&gt; trims=(3,-13)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clip</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">VideoNode</span></code>) – needed to determine framerate for audio timecodes and <cite>num_frames</cite> for negative indexing
+:bit depth: ANY
+:color family: ANY
+:float precision: ANY
+:sample type: ANY
+:subsampling: ANY</p></li>
+<li><p><strong>trims</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]) – <p>either a list of 2-tuples, or one tuple of 2 ints
+empty slicing must represented with a <cite>0</cite></p>
+<blockquote>
+<div><p>&gt; src[:10]+src[-5:]
+&gt; trims=[(0,10), (-5,0)]</p>
+</div></blockquote>
+<dl class="simple">
+<dt>single frame slices must be represented as a normal slice</dt><dd><p>&gt;&gt; src[15]
+&gt;&gt; trims=(15,16)</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>audio_file</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – <cite>‘/path/to/audio_file.wav’</cite>
+can also be a container file that uses a slice-able audio codec
+i.e. a remuxed BDMV source into a .mkv file with FLAC / PCM audio: <cite>‘/path/to/remuxed_bdmv.mkv’</cite></p></li>
+<li><p><strong>outfile</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – either a filename <cite>‘out.mka’</cite> or a full path <cite>‘/path/to/out.mka’</cite>
+if left empty, will default to <cite>audio_file_cut.mka</cite></p></li>
+<li><p><strong>mkvmerge_path</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – set this if mkvmerge not in your PATH or if you want to use a portable executable</p></li>
+<li><p><strong>ffmpeg_path</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – needed to output a <cite>.wav</cite> track instead of a one-track Mastroka Audio file
+if ‘ffmpeg’ exists in your PATH, will automatically be detected
+if <cite>None</cite> or ‘ffmpeg’ can’t be found, will only output a <cite>.mka</cite> file
+if specified as a blank string <cite>‘’</cite>, the script will skip attemping to re-write the file as a WAV track</p></li>
+<li><p><strong>quiet</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – suppress most console output</p></li>
+</ul>
+</dd>
+</dl>
+<p>OUTPUTS: a cut/spliced audio file in either the script’s directoy or the path specified with <cite>outfile</cite></p>
+</dd></dl>
+
+<ul class="simple">
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+           </div>
+
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+
+
+
+
+
+</body>
+</html>

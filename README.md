@@ -8,7 +8,7 @@ using VapourSynth clip information.
 
 ## Functions:
 
-### eztrim(clip, trims, audio_file, [outfile], [mkvmerge_path=], [ffmpeg_path=])
+### eztrim(clip, trims, audio_file[, outfile, mkvmerge_path=, ffmpeg_path=, quiet=])
 
 ```py
 import vapoursynth as vs
@@ -35,7 +35,7 @@ the script will automatically output a waveform audio file (`.wav`)
 named `/BDMV/STREAM/00003_cut.wav`.
 
 - If not, the script will output a Mastroka Audio file (`.mka`)
-named `/BDMV/STREAM/00003_cut.mka`
+named `/BDMV/STREAM/00003_cut.mka`.
 
 #### MKV container example
 

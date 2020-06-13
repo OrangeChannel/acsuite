@@ -1,7 +1,7 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
 __all__ = ['eztrim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '5 June 2020'
+__date__ = '13 June 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 """
@@ -27,6 +27,7 @@ def eztrim(clip: vs.VideoNode,
            *,
            mkvmerge_path: Optional[Union[Path, str]] = None,
            ffmpeg_path: Optional[Union[Path, str]] = None,
+           quiet: bool = False,
            debug: bool = False):
     """
     Simple trimming function that follows VS slicing syntax.
@@ -70,6 +71,9 @@ def eztrim(clip: vs.VideoNode,
     :param ffmpeg_path: needed to output a `.wav` track instead of a one-track Mastroka Audio file
         if 'ffmpeg' exists in your PATH, will automatically be detected
         if `None` or 'ffmpeg' can't be found, will only output a `.mka` file
+        if specified as a blank string `''`, the script will skip attemping to re-write the file as a WAV track
+
+    :param quiet: suppress most console output
 
     OUTPUTS: a cut/spliced audio file in either the script's directoy or the path specified with `outfile`
     """
@@ -153,14 +157,16 @@ def eztrim(clip: vs.VideoNode,
 
         delay_statement = ['--sync', f'{tid}:{re_return_filename.group(1)}'] if (tid and re_return_filename) else []
 
-    cut_args = [mkvmerge_path, '-o', str(outfile)] +  delay_statement + ['--split', split_parts, '-D', '-S', '-B', '-M', '-T', '--no-global-tags', '--no-chapters', str(audio_file)]
+    mkvmerge_silence = ['--quiet'] if quiet else []
+    cut_args = [mkvmerge_path] + mkvmerge_silence + ['-o', str(outfile)] +  delay_statement + ['--split', split_parts, '-D', '-S', '-B', '-M', '-T', '--no-global-tags', '--no-chapters', str(audio_file)]
     run(cut_args)
 
-    if not ffmpeg_path:
+    if ffmpeg_path is None:
         ffmpeg_path = which('ffmpeg')
 
     if ffmpeg_path:
-        run([ffmpeg_path, '-hide_banner', '-i', str(outfile), os.path.splitext(outfile)[0] + '.wav'])
+        ffmpeg_silence = ['-loglevel', '16'] if quiet else []
+        run([ffmpeg_path, '-hide_banner'] + ffmpeg_silence + ['-i', str(outfile), os.path.splitext(outfile)[0] + '.wav'])
         os.remove(outfile)
 
 

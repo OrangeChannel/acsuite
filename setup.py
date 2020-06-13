@@ -1,0 +1,36 @@
+import setuptools
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+setuptools.setup(
+    name="acsuite-OrangeChannel",
+    version="4.1.0",
+    description="Frame-based cutting/trimming/splicing of audio with VapourSynth.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/OrangeChannel/acsuite",
+    author="Dave",
+    author_email="orangechannel@pm.me",
+    license="UNLICENSE",
+    classifiers=[
+        "Intended Audience :: End Users/Desktop",
+        "License :: Public Domain",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Multimedia :: Sound/Audio",
+        "Typing :: Typed",
+    ],
+    keywords="audio vapoursynth encoding trim cut",
+    project_urls={
+        'Documentation': 'https://github.com/OrangeChannel/acsuite/',
+        'Source': 'https://github.com/OrangeChannel/acsuite/',
+        'Tracker': 'https://github.com/OrangeChannel/acsuite/issues',
+    },
+    packages=setuptools.find_packages(exclude=['tests']),
+    package_data={
+        'acsuite': ['py.typed']
+    },
+    python_requires='>=3.8',
+)
