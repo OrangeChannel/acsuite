@@ -166,12 +166,7 @@ can be directly entered as
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clip</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">VideoNode</span></code>) – needed to determine framerate for audio timecodes and <cite>num_frames</cite> for negative indexing
-:bit depth: ANY
-:color family: ANY
-:float precision: ANY
-:sample type: ANY
-:subsampling: ANY</p></li>
+<li><p><strong>clip</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">VideoNode</span></code>) – needed to determine framerate for audio timecodes and <cite>num_frames</cite> for negative indexing</p></li>
 <li><p><strong>trims</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]) – <p>either a list of 2-tuples, or one tuple of 2 ints
 empty slicing must represented with a <cite>0</cite></p>
 <blockquote>
@@ -196,6 +191,12 @@ if <cite>None</cite> or ‘ffmpeg’ can’t be found, will only output a <cite>
 if specified as a blank string <cite>‘’</cite>, the script will skip attemping to re-write the file as a WAV track</p></li>
 <li><p><strong>quiet</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – suppress most console output</p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]]]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>if <code class="docutils literal notranslate"><span class="pre">debug</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, returns a dictionary of values for testing, otherwise returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd>
 </dl>
 <p>OUTPUTS: a cut/spliced audio file in either the script’s directoy or the path specified with <cite>outfile</cite></p>
