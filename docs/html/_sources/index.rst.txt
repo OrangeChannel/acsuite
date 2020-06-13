@@ -9,4 +9,6 @@ acsuite documentation
    :members:
    :show-inheritance:
 
+Footer
+------
 * :ref:`search`
