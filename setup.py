@@ -4,7 +4,7 @@ with open("README.md") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="acsuite-OrangeChannel",
+    name="acsuite-orangechannel",
     version="4.1.0",
     description="Frame-based cutting/trimming/splicing of audio with VapourSynth.",
     long_description=long_description,
