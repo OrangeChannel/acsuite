@@ -35,37 +35,46 @@ def eztrim(clip: vs.VideoNode,
 
     End frame is NOT inclusive.
 
-    For a 100 frame long VapourSynth clip (``src[:100]``\ ):
+    For a 100 frame long VapourSynth clip (``src[:100]``):
 
     ``src[3:22]+src[23:40]+src[48]+src[50:-20]+src[-10:-5]+src[97:]`` can be (almost) directly entered as
-    ``trims=[(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)]``\ .
+    ``trims=[(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)]``.
 
-    ``src[3:-13]`` can be directly entered as ``trims=(3,-13)``\ .
+    ``src[3:-13]`` can be directly entered as ``trims=(3,-13)``.
 
-    :param clip: Input clip needed to determine framerate for audio timecodes and ``clip.num_frames`` for negative indexing.
-    :param trims: Either a list of 2-tuples, or one tuple of 2 ints.
+    :param clip:          Input clip needed to determine framerate for audio timecodes
+                          and ``clip.num_frames`` for negative indexing.
+    :param trims:         Either a list of 2-tuples, or one tuple of 2 ints.
 
-        Empty slicing must represented with a ``0``\ .
-            ``src[:10]+src[-5:]`` must be entered as ``trims=[(0,10), (-5,0)]``\ .
+        Empty slicing must represented with a ``0``.
+            ``src[:10]+src[-5:]`` must be entered as ``trims=[(0,10), (-5,0)]``.
 
         Single frame slices must be represented as a normal slice.
-            ``src[15]`` must be entered as ``trims=(15,16)``\ .
-    :param audio_file: A string or ``Path`` refering to the source audio file's location (i.e. '/path/to/audio_file.wav'). Can also be a container file that uses a slice-able audio codec such as a remuxed BDMV source into a `.mkv` file with FLAC / PCM audio.
-    :param outfile: Either a filename 'out.mka' or a full path '/path/to/out.mka' that will be used for the trimmed audio file. If left empty, will default to ``audio_file`` + ``_cut.mka`` (Default: ``None``\ ).
-    :param mkvmerge_path: Set this if ``mkvmerge`` is not in your `PATH` or if you want to use a portable executable (Default: ``None``\ ).
-    :param ffmpeg_path: Needed to output a `.wav` track instead of a one-track Mastroka Audio file (Default: ``None``\ ).
+            ``src[15]`` must be entered as ``trims=(15,16)``.
+    :param audio_file:    A string or ``Path`` refering to the source audio file's location
+                          (i.e. '/path/to/audio_file.wav').
+                          Can also be a container file that uses a slice-able audio codec
+                          such as a remuxed BDMV source into a `.mkv` file with FLAC / PCM audio.
+    :param outfile:       Either a filename 'out.mka' or a full path '/path/to/out.mka'
+                          that will be used for the trimmed audio file.
+                          If left empty, will default to ``audio_file`` + ``_cut.mka`` (Default: ``None``).
+    :param mkvmerge_path: Set this if ``mkvmerge`` is not in your `PATH`
+                          or if you want to use a portable executable (Default: ``None``).
 
-        If ``ffmpeg`` exists in your PATH, it will automatically be detected and used.
+    :param ffmpeg_path: Needed to output a `.wav` track instead of a one-track Mastroka Audio file (Default: ``None``).
+
+        If ``ffmpeg`` exists in your `PATH`, it will automatically be detected and used.
 
         If set to ``None`` or ``ffmpeg`` can't be found, will only output a `.mka` file.
 
-        If specified as a blank string ``''``, the script will skip attemping to re-write the file as a `.wav` track and will simply output a `.mka` file.
-    :param quiet: Suppresses most console output from MKVToolNix and FFmpeg (Default: ``False``\ ).
-    :param debug: Used for testing purposes (Default: ``False``\ ).
+        If specified as a blank string ``''``, the script will skip attemping to re-write the file as a `.wav` track
+        and will simply output a `.mka` file.
+    :param quiet:         Suppresses most console output from MKVToolNix and FFmpeg (Default: ``False``).
+    :param debug:         Used for testing purposes (Default: ``False``).
 
-    :return: If ``debug`` is ``True``\ , returns a dictionary of values for testing, otherwise returns ``None``\ .
+    :return: If ``debug`` is ``True``, returns a dictionary of values for testing, otherwise returns ``None``.
 
-        Outputs a cut/spliced audio file in either the script's directoy or the path specified with ``outfile``\ .
+        Outputs a cut/spliced audio file in either the script's directoy or the path specified with ``outfile``.
     """
     if not mkvmerge_path:
         if not (mkvmerge_path := which('mkvmerge')):

@@ -163,7 +163,8 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>clip</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">VideoNode</span></code>) – Input clip needed to determine framerate for audio timecodes and <code class="docutils literal notranslate"><span class="pre">clip.num_frames</span></code> for negative indexing.</p></li>
+<li><p><strong>clip</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">VideoNode</span></code>) – Input clip needed to determine framerate for audio timecodes
+and <code class="docutils literal notranslate"><span class="pre">clip.num_frames</span></code> for negative indexing.</p></li>
 <li><p><strong>trims</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]) – <p>Either a list of 2-tuples, or one tuple of 2 ints.</p>
 <dl class="simple">
 <dt>Empty slicing must represented with a <code class="docutils literal notranslate"><span class="pre">0</span></code>.</dt><dd><p><code class="docutils literal notranslate"><span class="pre">src[:10]+src[-5:]</span></code> must be entered as <code class="docutils literal notranslate"><span class="pre">trims=[(0,10),</span> <span class="pre">(-5,0)]</span></code>.</p>
@@ -172,20 +173,27 @@
 </dd>
 </dl>
 </p></li>
-<li><p><strong>audio_file</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – A string or <code class="docutils literal notranslate"><span class="pre">Path</span></code> refering to the source audio file’s location (i.e. ‘/path/to/audio_file.wav’). Can also be a container file that uses a slice-able audio codec such as a remuxed BDMV source into a <cite>.mkv</cite> file with FLAC / PCM audio.</p></li>
-<li><p><strong>outfile</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – Either a filename ‘out.mka’ or a full path ‘/path/to/out.mka’ that will be used for the trimmed audio file. If left empty, will default to <code class="docutils literal notranslate"><span class="pre">audio_file</span></code> + <code class="docutils literal notranslate"><span class="pre">_cut.mka</span></code> (Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p></li>
-<li><p><strong>mkvmerge_path</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – Set this if <code class="docutils literal notranslate"><span class="pre">mkvmerge</span></code> is not in your <cite>PATH</cite> or if you want to use a portable executable (Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p></li>
+<li><p><strong>audio_file</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – A string or <code class="docutils literal notranslate"><span class="pre">Path</span></code> refering to the source audio file’s location
+(i.e. ‘/path/to/audio_file.wav’).
+Can also be a container file that uses a slice-able audio codec
+such as a remuxed BDMV source into a <cite>.mkv</cite> file with FLAC / PCM audio.</p></li>
+<li><p><strong>outfile</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – Either a filename ‘out.mka’ or a full path ‘/path/to/out.mka’
+that will be used for the trimmed audio file.
+If left empty, will default to <code class="docutils literal notranslate"><span class="pre">audio_file</span></code> + <code class="docutils literal notranslate"><span class="pre">_cut.mka</span></code> (Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p></li>
+<li><p><strong>mkvmerge_path</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – Set this if <code class="docutils literal notranslate"><span class="pre">mkvmerge</span></code> is not in your <cite>PATH</cite>
+or if you want to use a portable executable (Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p></li>
 <li><p><strong>ffmpeg_path</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – <p>Needed to output a <cite>.wav</cite> track instead of a one-track Mastroka Audio file (Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> exists in your PATH, it will automatically be detected and used.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> exists in your <cite>PATH</cite>, it will automatically be detected and used.</p>
 <p>If set to <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> can’t be found, will only output a <cite>.mka</cite> file.</p>
-<p>If specified as a blank string <code class="docutils literal notranslate"><span class="pre">''</span></code>, the script will skip attemping to re-write the file as a <cite>.wav</cite> track and will simply output a <cite>.mka</cite> file.</p>
+<p>If specified as a blank string <code class="docutils literal notranslate"><span class="pre">''</span></code>, the script will skip attemping to re-write the file as a <cite>.wav</cite> track
+and will simply output a <cite>.mka</cite> file.</p>
 </p></li>
 <li><p><strong>quiet</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Suppresses most console output from MKVToolNix and FFmpeg (Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
 <li><p><strong>debug</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Used for testing purposes (Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]]]</p>
+<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]]]</p>
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><p>If <code class="docutils literal notranslate"><span class="pre">debug</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, returns a dictionary of values for testing, otherwise returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
@@ -207,6 +215,20 @@
            </div>
            
           </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
 
         </div>
       </div>
