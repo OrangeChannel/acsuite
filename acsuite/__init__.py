@@ -29,7 +29,7 @@ def eztrim(clip: vs.VideoNode,
            ffmpeg_path: Optional[Union[Path, str]] = None,
            quiet: bool = False,
            debug: bool = False
-           ) -> Optional[Dict[str, Union[List[int], List[str]]]]:
+           ) -> Optional[Dict[str, Union[int, List[int], List[str]]]]:
     """
     Simple trimming function that follows VapourSynth/Python slicing syntax.
 
@@ -103,7 +103,7 @@ def eztrim(clip: vs.VideoNode,
             raise ValueError('eztrim: the trim must have 2 elements')
         start: int = trims[0]
         end: int = trims[1]  # directly un-pack values from the single trim
-        start, end = cast(Tuple[int, int], _negative_to_positive(clip, start, end))
+        start, end = cast(Tuple, _negative_to_positive(clip, start, end))
         if end <= start:
             raise ValueError('eztrim: the trim {trims} is not logical')
         cut_ts_s: List[str] = [_f2ts(clip, start)]
@@ -111,7 +111,7 @@ def eztrim(clip: vs.VideoNode,
     else:
         starts: List[int] = [s for s, e in trims]
         ends: List[int] = [e for s, e in trims]
-        starts, ends = cast(Tuple[List[int], List[int]], _negative_to_positive(clip, starts, ends))
+        starts, ends = cast(Tuple, _negative_to_positive(clip, starts, ends))
         if _check_ordered(starts, ends):
             cut_ts_s = [_f2ts(clip, f) for f in starts]
             cut_ts_e = [_f2ts(clip, f) for f in ends]
@@ -154,6 +154,8 @@ def eztrim(clip: vs.VideoNode,
         run([str(ffmpeg_path), '-hide_banner'] + ffmpeg_silence + ['-i', str(outfile), os.path.splitext(outfile)[0] + '.wav'])
         os.remove(outfile)
 
+    return None
+
 
 def _f2ts(clip: vs.VideoNode, f: int) -> str:
     """Converts frame number to HH:mm:ss.nnnnnnnnn timestamp based on clip's framerate."""
@@ -180,8 +182,8 @@ def _negative_to_positive(clip: vs.VideoNode, a: Union[List[int], int], b: Union
         return a if a >= 0 else num_frames + a, b if b > 0 else num_frames + b
 
     else:
-        a = cast(List[int], a)
-        b = cast(List[int], b)
+        a = cast(List, a)
+        b = cast(List, b)
         if len(a) != len(b):
             raise ValueError('_negative_to_positive: lists must be same length')
 
