@@ -3,9 +3,12 @@ import setuptools
 with open("README.md") as fh:
     long_description = fh.read()
 
+with open("requirements.txt") as fh:
+    install_requires = fh.read()
+
 setuptools.setup(
     name="acsuite-orangechannel",
-    version="4.1.1",
+    version="4.1.2",
     description="Frame-based cutting/trimming/splicing of audio with VapourSynth.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -13,6 +16,7 @@ setuptools.setup(
     author="Dave",
     author_email="orangechannel@pm.me",
     license="UNLICENSE",
+    install_requires=install_requires,
     classifiers=[
         "Intended Audience :: End Users/Desktop",
         "License :: Public Domain",
