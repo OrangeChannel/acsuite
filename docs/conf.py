@@ -22,7 +22,7 @@ copyright = ''
 author = 'Dave <orangechannel@pm.me>'
 
 # The full version, including alpha/beta/rc tags
-release = '4.1.0'
+version = release = '4.2.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -34,7 +34,9 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.todo',
-    'sphinx_autodoc_typehints'
+    'sphinx.ext.viewcode',
+    'sphinx_autodoc_typehints',
+    'sphinx.ext.githubpages',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -57,20 +59,27 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+html_context = {
+    # https://rackerlabs.github.io/docs-rackspace/tools/rtd-tables.html
+    'css_files': ['_static/theme_overrides.css'],
+}
+
 autosummary_generate = True
 
-autodoc_mock_imports = ["vapoursynth"]
+autodoc_mock_imports = ['vapoursynth']
+smartquotes = True
+html_show_copyright = False
+html_show_sphinx = False
+# add_module_names = False
+pygments_style = 'sphinx'
 
 # -- Extension configuration -------------------------------------------------
 
-# -- Options for todo extension ----------------------------------------------
-
-# If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
