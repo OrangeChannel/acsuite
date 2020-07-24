@@ -24,7 +24,7 @@ src = core.lsmas.LWLibavSource(file)
 trimmed_clip = src[3:22]+src[23:40]+src[48]+src[50:-20]+src[-10:-5]+src[97:]
 
 # `clip` arg should be the uncut/untrimmed source that you are trimming from
-eztrim(src, [(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,0)], afile)
+eztrim(src, [(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,None)], afile)
 ```
 
 ##### Outputs:
@@ -36,6 +36,8 @@ named `/BDMV/STREAM/00003_cut.wav`.
 
 - If not, the script will output a Mastroka Audio file (`.mka`)
 named `/BDMV/STREAM/00003_cut.mka`.
+
+- If you want to skip the re-encoding, specify `ffmpeg_path=''`.
 
 #### MKV container example
 
@@ -58,7 +60,7 @@ with `ffmpeg_path='/path/to/ffmpeg.exe'`,
 the script will automatically output a waveform audio file (`.wav`)
 named `custom_name.wav` in the directory the script is running from.
 
-- If not, the script will output a Mastroka Audio file (`.mka`)
+- If not, or if given `ffmpeg_path=''`, the script will output a Mastroka Audio file (`.mka`)
 named `custom_name.mka` in the directory the script is running from.
 ---
 
