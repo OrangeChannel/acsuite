@@ -144,7 +144,7 @@ def eztrim(clip: vs.VideoNode,
         if debug:
             return {'s': start, 'e': end, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
     else:
-        starts, ends = _negative_to_positive(clip.num_frames, [s for s, e in trims], [e for s, e in trims])
+        starts, ends = _negative_to_positive(num_frames, [s for s, e in trims], [e for s, e in trims])
         if _check_ordered(starts, ends):
             cut_ts_s = [_f2ts(fps, f) for f in starts]
             cut_ts_e = [_f2ts(fps, f) for f in ends]
@@ -183,7 +183,7 @@ def eztrim(clip: vs.VideoNode,
         ffmpeg_outfile = os.path.splitext(outfile)[0] + '.wav'
         if os.path.isfile(ffmpeg_outfile):
             raise FileExistsError(f"eztrim: {ffmpeg_outfile} already exists, not re-encoding with FFmpeg")
-        run([str(ffmpeg_path), '-hide_banner'] + ffmpeg_silence + ['-i', str(outfile), os.path.splitext(outfile)[0] + '.wav'])
+        run([str(ffmpeg_path), '-hide_banner'] + ffmpeg_silence + ['-i', str(outfile), ffmpeg_outfile])
         os.remove(outfile)
 
 
