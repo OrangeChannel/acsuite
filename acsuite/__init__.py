@@ -1,10 +1,10 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
 __all__ = ['eztrim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '21 July 2020'
+__date__ = '24 July 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
-
+doop, for explaining the use of None for empty slicing
 """
 __version__ = '4.2.0'
 
