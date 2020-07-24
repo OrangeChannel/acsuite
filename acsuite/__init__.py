@@ -233,19 +233,10 @@ def _negative_to_positive(num_frames: int, a: _Neg2pos_in, b: _Neg2pos_in) -> _N
         return positive_a, positive_b
 
 
-def _check_ordered(a: List[int], b: List[int]) -> bool:
+def _check_ordered(starts: List[int], ends: List[int]) -> bool:
     """Checks if lists follow logical Python slicing."""
-    if len(a) != len(b):
-        raise ValueError('_check_ordered: lists must be same length')
-    if len(a) == 1 and len(b) == 1:
-        if a[0] >= b[0]:
-            return False
-
-    if not all(a[i] < a[i + 1] for i in range(len(a) - 1)):
-        return False  # checks if list a is ordered L to G
-    if not all(b[i] < a[i + 1] for i in range(len(a) - 1)):
-        return False  # checks if all ends are less than next start
-    if not all(a[i] < b[i] for i in range(len(a))):
+    if not all(starts[i] < ends[i] for i in range(len(starts))):
         return False  # makes sure pair is at least one frame long
-
+    if not all(ends[i] < starts[i + 1] for i in range(len(starts) - 1)):
+        return False  # checks if all ends are less than next start
     return True
