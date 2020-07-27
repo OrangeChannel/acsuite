@@ -188,7 +188,7 @@ def eztrim(clip: vs.VideoNode,
 
 
 def _f2ts(fps: fractions.Fraction, f: int) -> str:
-    """Converts frame number to HH:mm:ss.nnnnnnnnn timestamp based on framerate."""
+    """Converts frame number to HH:mm:ss.mmm timestamp based on framerate."""
     t = round(10 ** 9 * f * fps ** -1)
 
     s = t / 10 ** 9
@@ -197,7 +197,7 @@ def _f2ts(fps: fractions.Fraction, f: int) -> str:
     h = m // 60
     m %= 60
 
-    return f'{h:02.0f}:{m:02.0f}:{s:012.9f}'
+    return f'{h:02.0f}:{m:02.0f}:{s:06.3f}'
 
 
 _Neg2pos_in = Union[List[Optional[int]], Optional[int]]
