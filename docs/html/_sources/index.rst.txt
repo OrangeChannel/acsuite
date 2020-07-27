@@ -8,7 +8,3 @@ acsuite documentation
 .. automodule:: acsuite
    :members:
    :show-inheritance:
-
-Footer
-------
-* :ref:`search`

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>acsuite documentation &mdash; acsuite 4.2.0 documentation</title>
+  <title>acsuite documentation &mdash; acsuite 5.0.0 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                4.2.0
+                5.0.0
               </div>
             
           
@@ -86,7 +86,6 @@
               <!-- Local TOC -->
               <div class="local-toc"><ul>
 <li><a class="reference internal" href="#">acsuite documentation</a></li>
-<li><a class="reference internal" href="#footer">Footer</a></li>
 </ul>
 </div>
             
@@ -158,10 +157,10 @@
 <span class="target" id="module-acsuite"></span><p>Frame-based cutting/trimming/splicing of audio with VapourSynth.</p>
 <dl class="py function">
 <dt id="acsuite.eztrim">
-<code class="sig-prename descclassname">acsuite.</code><code class="sig-name descname">eztrim</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">clip</span></em>, <em class="sig-param"><span class="n">trims</span></em>, <em class="sig-param"><span class="n">audio_file</span></em>, <em class="sig-param"><span class="n">outfile</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">mkvmerge_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ffmpeg_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">quiet</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/acsuite.html#eztrim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#acsuite.eztrim" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">acsuite.</code><code class="sig-name descname">eztrim</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">clip</span></em>, <em class="sig-param"><span class="n">trims</span></em>, <em class="sig-param"><span class="n">audio_file</span></em>, <em class="sig-param"><span class="n">outfile</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">ffmpeg_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">quiet</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/acsuite.html#eztrim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#acsuite.eztrim" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple trimming function that follows VapourSynth/Python slicing syntax.</p>
 <p>End frame is NOT inclusive.</p>
-<p>For a 100 frame long VapourSynth clip (<code class="docutils literal notranslate"><span class="pre">src[:100]</span></code>):</p>
+<p>For a 100 frame long VapourSynth clip:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">src</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">ffms2</span><span class="o">.</span><span class="n">Source</span><span class="p">(</span><span class="s1">&#39;file.mkv&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clip</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">22</span><span class="p">]</span><span class="o">+</span><span class="n">src</span><span class="p">[</span><span class="mi">23</span><span class="p">:</span><span class="mi">40</span><span class="p">]</span><span class="o">+</span><span class="n">src</span><span class="p">[</span><span class="mi">48</span><span class="p">]</span><span class="o">+</span><span class="n">src</span><span class="p">[</span><span class="mi">50</span><span class="p">:</span><span class="o">-</span><span class="mi">20</span><span class="p">]</span><span class="o">+</span><span class="n">src</span><span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="n">src</span><span class="p">[</span><span class="mi">97</span><span class="p">:]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;These trims can be almost directly entered as:&#39;</span>
@@ -183,50 +182,33 @@ and <code class="docutils literal notranslate"><span class="pre">clip.num_frames
 <li><p><strong>trims</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]]) – <p>Either a list of 2-tuples, or one tuple of 2 ints
 Empty slicing must represented with a <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 <blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">src[:10]+src[-5:]</span></code> must be entered as <code class="docutils literal notranslate"><span class="pre">trims=[(None,10),</span> <span class="pre">(-5,None)]</span></code>.</p>
+<div><p><code class="docutils literal notranslate"><span class="pre">src[:10]+src[-5:]</span></code> must be entered as <code class="docutils literal notranslate"><span class="pre">trims=[(None,</span> <span class="pre">10),</span> <span class="pre">(-5,</span> <span class="pre">None)]</span></code>.</p>
 </div></blockquote>
 <p>For legacy reasons, <code class="docutils literal notranslate"><span class="pre">0</span></code> can be used in place of <code class="docutils literal notranslate"><span class="pre">None</span></code> but is not recommended.
 Single frame slices must be represented as a normal slice.</p>
 <blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">src[15]</span></code> must be entered as <code class="docutils literal notranslate"><span class="pre">trims=(15,16)</span></code>.</p>
+<div><p><code class="docutils literal notranslate"><span class="pre">src[15]</span></code> must be entered as <code class="docutils literal notranslate"><span class="pre">trims=(15,</span> <span class="pre">16)</span></code>.</p>
 </div></blockquote>
 </p></li>
 <li><p><strong>audio_file</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PathLike</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – A string or path-like object refering to the source audio file’s location
-(i.e. ‘/path/to/audio_file.wav’).
-Can also be a container file that uses a slice-able audio codec
-such as a remuxed BDMV source into a <cite>.mkv</cite> file with FLAC / PCM audio.</p></li>
-<li><p><strong>outfile</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PathLike</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – Either a filename ‘out.mka’ or a full path ‘/path/to/out.mka’
+(i.e. ‘/path/to/audio_file.ext’).</p></li>
+<li><p><strong>outfile</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PathLike</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – Either a filename ‘out.ext’ or a full path ‘/path/to/out.ext’
 that will be used for the trimmed audio file.
-If left empty, will default to <code class="docutils literal notranslate"><span class="pre">audio_file</span></code> + <code class="docutils literal notranslate"><span class="pre">_cut.mka</span></code>.</p></li>
-<li><p><strong>mkvmerge_path</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PathLike</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – Set this if <code class="docutils literal notranslate"><span class="pre">mkvmerge</span></code> is not in your <cite>PATH</cite>
-or if you want to use a portable executable</p></li>
-<li><p><strong>ffmpeg_path</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PathLike</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – <p>Needed to output a <cite>.wav</cite> track instead of a one-track Mastroka Audio file.</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> exists in your <cite>PATH</cite>, it will automatically be detected and used.</p>
-<p>If set to <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> can’t be found, will only output a <cite>.mka</cite> file.</p>
-<p>If specified as a blank string <code class="docutils literal notranslate"><span class="pre">''</span></code>, the script will skip attemping to re-write the file as a <cite>.wav</cite> track
-and will simply output a <cite>.mka</cite> file.</p>
-</p></li>
-<li><p><strong>quiet</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Suppresses most console output from MKVToolNix and FFmpeg</p></li>
+The extension will be automatically inserted for you,
+and if it is given, it will be overwritten by the input <cite>audio_file</cite>’s extension.
+If left blank, defaults to <code class="docutils literal notranslate"><span class="pre">audio_file_cut.ext</span></code>.</p></li>
+<li><p><strong>ffmpeg_path</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PathLike</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – Set this if <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> is not in your <cite>PATH</cite>.
+If <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> exists in your <cite>PATH</cite>, it will automatically be detected and used.</p></li>
+<li><p><strong>quiet</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Suppresses most console output from FFmpeg</p></li>
 <li><p><strong>debug</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Used for testing purposes</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]]]</p>
 </dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><p>If <code class="docutils literal notranslate"><span class="pre">debug</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, returns a dictionary of values for testing, otherwise returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-<p>Outputs a cut/spliced audio file in either the script’s directoy or the path specified with <code class="docutils literal notranslate"><span class="pre">outfile</span></code>.</p>
-</p>
-</dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="footer">
-<h1>Footer<a class="headerlink" href="#footer" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
-</ul>
 </div>
 
 
