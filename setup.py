@@ -8,7 +8,7 @@ with open('requirements.txt') as fh:
 
 setuptools.setup(
     name='acsuite-orangechannel',
-    version='4.2.0',
+    version='5.0.0',
     description='Frame-based cutting/trimming/splicing of audio with VapourSynth.',
     long_description=long_description,
     long_description_content_type='text/markdown',

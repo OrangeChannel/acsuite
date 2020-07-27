@@ -1,19 +1,20 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth."""
 __all__ = ['eztrim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '24 July 2020'
+__date__ = '26 July 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 doop, for explaining the use of None for empty slicing
 """
-__version__ = '4.2.0'
+__version__ = '5.0.0'
 
 import fractions
+import mimetypes
 import os
 import pathlib
-from re import compile, IGNORECASE
+import subprocess
 from shutil import which
-from subprocess import PIPE, run
+from subprocess import run
 from typing import Dict, List, Optional, Tuple, Union
 from warnings import simplefilter, warn
 
@@ -31,7 +32,6 @@ def eztrim(clip: vs.VideoNode,
            audio_file: Path,
            outfile: Optional[Path] = None,
            *,
-           mkvmerge_path: Optional[Path] = None,
            ffmpeg_path: Optional[Path] = None,
            quiet: bool = False,
            debug: bool = False
@@ -41,7 +41,7 @@ def eztrim(clip: vs.VideoNode,
 
     End frame is NOT inclusive.
 
-    For a 100 frame long VapourSynth clip (``src[:100]``):
+    For a 100 frame long VapourSynth clip:
 
     >>> src = core.ffms2.Source('file.mkv')
     >>> clip = src[3:22]+src[23:40]+src[48]+src[50:-20]+src[-10:-5]+src[97:]
@@ -59,53 +59,53 @@ def eztrim(clip: vs.VideoNode,
                           and ``clip.num_frames`` for negative indexing
     :param trims:         Either a list of 2-tuples, or one tuple of 2 ints
         Empty slicing must represented with a ``None``.
-            ``src[:10]+src[-5:]`` must be entered as ``trims=[(None,10), (-5,None)]``.
+            ``src[:10]+src[-5:]`` must be entered as ``trims=[(None, 10), (-5, None)]``.
         For legacy reasons, ``0`` can be used in place of ``None`` but is not recommended.
         Single frame slices must be represented as a normal slice.
-            ``src[15]`` must be entered as ``trims=(15,16)``.
+            ``src[15]`` must be entered as ``trims=(15, 16)``.
     :param audio_file:    A string or path-like object refering to the source audio file's location
-                          (i.e. '/path/to/audio_file.wav').
-                          Can also be a container file that uses a slice-able audio codec
-                          such as a remuxed BDMV source into a `.mkv` file with FLAC / PCM audio.
-    :param outfile:       Either a filename 'out.mka' or a full path '/path/to/out.mka'
+                          (i.e. '/path/to/audio_file.ext').
+    :param outfile:       Either a filename 'out.ext' or a full path '/path/to/out.ext'
                           that will be used for the trimmed audio file.
-                          If left empty, will default to ``audio_file`` + ``_cut.mka``.
-    :param mkvmerge_path: Set this if ``mkvmerge`` is not in your `PATH`
-                          or if you want to use a portable executable
+                          The extension will be automatically inserted for you,
+                          and if it is given, it will be overwritten by the input `audio_file`'s extension.
+                          If left blank, defaults to ``audio_file_cut.ext``.
 
-    :param ffmpeg_path: Needed to output a `.wav` track instead of a one-track Mastroka Audio file.
+    :param ffmpeg_path: Set this if ``ffmpeg`` is not in your `PATH`.
+                        If ``ffmpeg`` exists in your `PATH`, it will automatically be detected and used.
 
-        If ``ffmpeg`` exists in your `PATH`, it will automatically be detected and used.
-
-        If set to ``None`` or ``ffmpeg`` can't be found, will only output a `.mka` file.
-
-        If specified as a blank string ``''``, the script will skip attemping to re-write the file as a `.wav` track
-        and will simply output a `.mka` file.
-    :param quiet:         Suppresses most console output from MKVToolNix and FFmpeg
+    :param quiet:         Suppresses most console output from FFmpeg
     :param debug:         Used for testing purposes
-
-    :return: If ``debug`` is ``True``, returns a dictionary of values for testing, otherwise returns ``None``.
-
-        Outputs a cut/spliced audio file in either the script's directoy or the path specified with ``outfile``.
     """
     if debug:
         pass
     else:
         if not os.path.isfile(audio_file):
             raise FileNotFoundError(f"eztrim: {audio_file} not found")
+        if not mimetypes.types_map[os.path.splitext(audio_file)[-1]].startswith('audio/'):
+            raise ValueError(f"{audio_file} does not seem to be an audio file; "
+                             f"try to extract the audio track first if it is in a container")
 
         if outfile is None:
-            outfile = os.path.splitext(audio_file)[0] + '_cut.mka'
-        if os.path.splitext(outfile)[1] != '.mka':
-            warn("eztrim: outfile does not have a .mka extension, one will be added for you", SyntaxWarning)
-            outfile = os.path.splitext(outfile)[0] + '.mka'
-        if os.path.isfile(outfile):
+            outfile = os.path.splitext(audio_file)[0] + '_cut' + os.path.splitext(audio_file)[-1]
+        elif not os.path.splitext(outfile)[1]:
+            outfile += os.path.splitext(audio_file)[-1]
+        elif os.path.splitext(audio_file)[-1] != os.path.splitext(outfile)[-1]:
+            outfile = os.path.splitext(outfile)[0] + os.path.splitext(audio_file)[-1]
+        elif os.path.isfile(outfile):
             raise FileExistsError(f"eztrim: {outfile} already exists")
 
-        if mkvmerge_path is None:
-            mkvmerge_path: str = which('mkvmerge') or ''
-        if not os.path.isfile(mkvmerge_path):
-            raise FileNotFoundError("eztrim: mkvmerge executable not found")
+        if ffmpeg_path is None:
+            ffmpeg_path = which('ffmpeg')
+        else:
+            if not os.path.isfile(ffmpeg_path):
+                raise FileNotFoundError(f"ffmpeg executable at {ffmpeg_path} not found")
+            try:
+                args = ['ffmpeg', '-version']
+                if subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout.split()[0] != 'ffmpeg':
+                    raise FileNotFoundError("ffmpeg executable not working properly")
+            except FileNotFoundError:
+                raise FileNotFoundError("ffmpeg executable not found in PATH") from None
 
     # error checking ------------------------------------------------------------------------
     if not isinstance(trims, (list, tuple)):
@@ -153,38 +153,33 @@ def eztrim(clip: vs.VideoNode,
         if debug:
             return {'s': starts, 'e': ends, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
 
-    delay_statement = []
+    ffmpeg_silence = [str(ffmpeg_path), '-hide_banner', '-loglevel', '16'] if quiet else [str(ffmpeg_path), '-hide_banner']
 
-    split_parts = 'parts:'
-    for s, e in zip(cut_ts_s, cut_ts_e):
-        split_parts += f'{s}-{e},+'
+    if len(cut_ts_s) == 1:
+        args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', cut_ts_s[0], '-to', cut_ts_e[0], '-c:a', 'copy', outfile]
+        run(args)
+        return
 
-    split_parts = split_parts[:-2]
+    times = [[s, e] for s, e in zip(cut_ts_s, cut_ts_e)]
+    if os.path.isfile('_temp_concat.txt'):
+        raise ValueError("_temp_concat.txt already exists, quitting")
+    else:
+        concat_file = open('_temp_concat.txt', 'w')
+        temp_filelist = []
+    for key, time in enumerate(times):
+        outfile_tmp = f'_temp_output_{key}' + os.path.splitext(outfile)[-1]
+        concat_file.write(f"file {outfile_tmp}\n")
+        temp_filelist.append(outfile_tmp)
+        args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', time[0], '-to', time[1], '-c:a', 'copy', outfile_tmp]
+        run(args)
 
-    identify_proc = run([mkvmerge_path, '--output-charset', 'utf-8', '--identify', str(audio_file)], text=True, check=True, stdout=PIPE, encoding='utf-8')
-    identify_pattern = compile(r'Track ID (\d+): audio')
-    if re_return_proc := identify_pattern.search(identify_proc.stdout) if identify_proc.stdout else None:
-        tid = re_return_proc.group(1) if re_return_proc else '0'
+    concat_file.close()
+    args = ffmpeg_silence + ['-f', 'concat', '-i', '_temp_concat.txt', '-c', 'copy', outfile]
+    run(args)
 
-        filename_delay_pattern = compile(r'DELAY ([-]?\d+)', flags=IGNORECASE)
-        re_return_filename = filename_delay_pattern.search(str(audio_file))
-
-        delay_statement = ['--sync', f'{tid}:{re_return_filename.group(1)}'] if (tid and re_return_filename) else []
-
-    mkvmerge_silence = ['--quiet'] if quiet else []
-    cut_args = [str(mkvmerge_path)] + mkvmerge_silence + ['-o', str(outfile)] +  delay_statement + ['--split', split_parts, '-D', '-S', '-B', '-M', '-T', '--no-global-tags', '--no-chapters', str(audio_file)]
-    run(cut_args)
-
-    if ffmpeg_path is None:
-        ffmpeg_path = which('ffmpeg')
-
-    if ffmpeg_path:
-        ffmpeg_silence = ['-loglevel', '16'] if quiet else []
-        ffmpeg_outfile = os.path.splitext(outfile)[0] + '.wav'
-        if os.path.isfile(ffmpeg_outfile):
-            raise FileExistsError(f"eztrim: {ffmpeg_outfile} already exists, not re-encoding with FFmpeg")
-        run([str(ffmpeg_path), '-hide_banner'] + ffmpeg_silence + ['-i', str(outfile), ffmpeg_outfile])
-        os.remove(outfile)
+    os.remove('_temp_concat.txt')
+    for file in temp_filelist:
+        os.remove(file)
 
 
 def _f2ts(fps: fractions.Fraction, f: int) -> str:

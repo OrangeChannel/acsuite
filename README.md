@@ -8,7 +8,7 @@ using VapourSynth clip information.
 
 ## Functions:
 
-### eztrim(clip, trims, audio_file[, outfile, mkvmerge_path=, ffmpeg_path=, quiet=])
+### eztrim(clip, trims, audio_file[, outfile, ffmpeg_path=, quiet=])
 
 ```py
 import vapoursynth as vs
@@ -27,51 +27,15 @@ trimmed_clip = src[3:22]+src[23:40]+src[48]+src[50:-20]+src[-10:-5]+src[97:]
 eztrim(src, [(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,None)], afile)
 ```
 
-##### Outputs:
+##### Output:
 
-- If you have `ffmpeg` in your PATH or specify a path to an FFmpeg executable
-with `ffmpeg_path='/path/to/ffmpeg.exe'`,
-the script will automatically output a waveform audio file (`.wav`)
-named `/BDMV/STREAM/00003_cut.wav`.
-
-- If not, the script will output a Mastroka Audio file (`.mka`)
-named `/BDMV/STREAM/00003_cut.mka`.
-
-- If you want to skip the re-encoding, specify `ffmpeg_path=''`.
-
-#### MKV container example
-
-```py
-import vapoursynth as vs
-core = vs.core
-from acsuite import eztrim
-
-# no need to extract audio if using a container with a slice-able audio codec
-file = r'/path/to/remuxed_bdmv.mkv'  # Video: V_MPEG4/ISO/AVC, Audio: A_PCM/INT/LIT
-
-# trimmed_clip = src[0:-22]
-eztrim(core.lsmas.LWLibavSource(file), (0, -22), file, 'custom_name.mka')
-```
-
-##### Outputs:
-
-- If you have `ffmpeg` in your PATH or specify a path to an FFmpeg executable
-with `ffmpeg_path='/path/to/ffmpeg.exe'`,
-the script will automatically output a waveform audio file (`.wav`)
-named `custom_name.wav` in the directory the script is running from.
-
-- If not, or if given `ffmpeg_path=''`, the script will output a Mastroka Audio file (`.mka`)
-named `custom_name.mka` in the directory the script is running from.
----
+Uses the file extension of the input _audio_file_ to output a cut/trimmed audio file with the same extension. If no _outfile_ is given, defaults to `audio_file_cut.ext`.
 
 ## Getting Started
 
 ### Dependencies
-- [MKVToolNix](https://mkvtoolnix.download/downloads.html)
+- [FFmpeg](https://ffmpeg.org/)
 - [VapourSynth R49+](https://github.com/vapoursynth/vapoursynth/releases)
-
-##### Optional Dependencies
-- [FFmpeg](https://ffmpeg.org/) - needed to output WAV files instead of Mastroka Audio (MKA)
 
 ### Installing
 
