@@ -8,8 +8,8 @@ with open('requirements.txt') as fh:
 
 setuptools.setup(
     name='acsuite-orangechannel',
-    version='5.0.0',
-    description='Frame-based cutting/trimming/splicing of audio with VapourSynth.',
+    version='5.0.1',
+    description='Frame-based cutting/trimming/splicing of audio with VapourSynth and FFmpeg.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/OrangeChannel/acsuite',
@@ -26,7 +26,7 @@ setuptools.setup(
         "Topic :: Multimedia :: Sound/Audio",
         "Typing :: Typed",
     ],
-    keywords="audio vapoursynth encoding trim cut",
+    keywords="audio vapoursynth encoding trim cut ffmpeg",
     project_urls={
         'Documentation': 'https://orangechannel.github.io/acsuite/html/index.html',
         'Source': 'https://github.com/OrangeChannel/acsuite/blob/master/acsuite/__init__.py',

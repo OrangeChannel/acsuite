@@ -1,15 +1,14 @@
-"""Frame-based cutting/trimming/splicing of audio with VapourSynth."""
+"""Frame-based cutting/trimming/splicing of audio with VapourSynth and FFmpeg."""
 __all__ = ['eztrim']
 __author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '26 July 2020'
+__date__ = '29 July 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
 Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 doop, for explaining the use of None for empty slicing
 """
-__version__ = '5.0.0'
+__version__ = '5.0.1'
 
 import fractions
-import mimetypes
 import os
 import pathlib
 import subprocess
@@ -65,6 +64,8 @@ def eztrim(clip: vs.VideoNode,
             ``src[15]`` must be entered as ``trims=(15, 16)``.
     :param audio_file:    A string or path-like object refering to the source audio file's location
                           (i.e. '/path/to/audio_file.ext').
+                          If the extension is not recognized as a valid audio file extension for FFmpeg's encoders,
+                          the audio will be re-encoded to WAV losslessly.
     :param outfile:       Either a filename 'out.ext' or a full path '/path/to/out.ext'
                           that will be used for the trimmed audio file.
                           The extension will be automatically inserted for you,
@@ -82,17 +83,40 @@ def eztrim(clip: vs.VideoNode,
     else:
         if not os.path.isfile(audio_file):
             raise FileNotFoundError(f"eztrim: {audio_file} not found")
-        if not mimetypes.types_map[os.path.splitext(audio_file)[-1]].startswith('audio/'):
-            raise ValueError(f"{audio_file} does not seem to be an audio file; "
-                             f"try to extract the audio track first if it is in a container")
+
+        audio_file_name, audio_file_ext = os.path.splitext(audio_file)
+        ffmpeg_valid_encoder_extensions = {
+            '.aac', '.m4a', '.adts',
+            '.ac3',
+            '.alac', '.caf',
+            '.dca', '.dts',
+            '.eac3',
+            '.flac',
+            '.gsm',
+            '.mlp',
+            '.mp2', '.mp3', '.mpga',
+            '.opus', '.spx', '.ogg', '.oga'
+            '.pcm', '.raw',
+            '.sbc',
+            '.thd',
+            '.tta',
+            '.wav',
+            '.wma',
+        }
+        if audio_file_ext not in ffmpeg_valid_encoder_extensions:
+            warn(f"{audio_file_ext} is not a supported extension by FFmpeg's audio encoders, re-encoding to WAV", Warning)
+            audio_file_ext = '.wav'
+        else:
+            codec_args = ['-c:a', 'copy']
 
         if outfile is None:
-            outfile = os.path.splitext(audio_file)[0] + '_cut' + os.path.splitext(audio_file)[-1]
+            outfile = audio_file_name + '_cut' + audio_file_ext
         elif not os.path.splitext(outfile)[1]:
-            outfile += os.path.splitext(audio_file)[-1]
-        elif os.path.splitext(audio_file)[-1] != os.path.splitext(outfile)[-1]:
-            outfile = os.path.splitext(outfile)[0] + os.path.splitext(audio_file)[-1]
-        elif os.path.isfile(outfile):
+            outfile += audio_file_ext
+        elif os.path.splitext(outfile)[-1] != audio_file_ext:
+            outfile = os.path.splitext(outfile)[0] + audio_file_ext
+
+        if os.path.isfile(outfile):
             raise FileExistsError(f"eztrim: {outfile} already exists")
 
         if ffmpeg_path is None:
@@ -103,7 +127,7 @@ def eztrim(clip: vs.VideoNode,
             try:
                 args = ['ffmpeg', '-version']
                 if subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout.split()[0] != 'ffmpeg':
-                    raise FileNotFoundError("ffmpeg executable not working properly")
+                    raise ValueError("ffmpeg executable not working properly")
             except FileNotFoundError:
                 raise FileNotFoundError("ffmpeg executable not found in PATH") from None
 
@@ -156,28 +180,28 @@ def eztrim(clip: vs.VideoNode,
     ffmpeg_silence = [str(ffmpeg_path), '-hide_banner', '-loglevel', '16'] if quiet else [str(ffmpeg_path), '-hide_banner']
 
     if len(cut_ts_s) == 1:
-        args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', cut_ts_s[0], '-to', cut_ts_e[0], '-c:a', 'copy', outfile]
+        args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', cut_ts_s[0], '-to', cut_ts_e[0]] + codec_args + [outfile]
         run(args)
         return
 
     times = [[s, e] for s, e in zip(cut_ts_s, cut_ts_e)]
-    if os.path.isfile('_temp_concat.txt'):
-        raise ValueError("_temp_concat.txt already exists, quitting")
+    if os.path.isfile('_acsuite_temp_concat.txt'):
+        raise ValueError("_acsuite_temp_concat.txt already exists, quitting")
     else:
-        concat_file = open('_temp_concat.txt', 'w')
+        concat_file = open('_acsuite_temp_concat.txt', 'w')
         temp_filelist = []
     for key, time in enumerate(times):
-        outfile_tmp = f'_temp_output_{key}' + os.path.splitext(outfile)[-1]
+        outfile_tmp = f'_acsuite_temp_output_{key}' + os.path.splitext(outfile)[-1]
         concat_file.write(f"file {outfile_tmp}\n")
         temp_filelist.append(outfile_tmp)
-        args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', time[0], '-to', time[1], '-c:a', 'copy', outfile_tmp]
+        args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', time[0], '-to', time[1]] + codec_args + [outfile_tmp]
         run(args)
 
     concat_file.close()
-    args = ffmpeg_silence + ['-f', 'concat', '-i', '_temp_concat.txt', '-c', 'copy', outfile]
+    args = ffmpeg_silence + ['-f', 'concat', '-i', '_acsuite_temp_concat.txt', '-c', 'copy', outfile]
     run(args)
 
-    os.remove('_temp_concat.txt')
+    os.remove('_acsuite_temp_concat.txt')
     for file in temp_filelist:
         os.remove(file)
 
