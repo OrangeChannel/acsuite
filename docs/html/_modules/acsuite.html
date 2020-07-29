@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>acsuite &mdash; acsuite 5.0.0 documentation</title>
+  <title>acsuite &mdash; acsuite 5.0.1 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                5.0.0
+                5.0.1
               </div>
             
           
@@ -146,18 +146,17 @@
            <div itemprop="articleBody">
             
   <h1>Source code for acsuite</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Frame-based cutting/trimming/splicing of audio with VapourSynth.&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;Frame-based cutting/trimming/splicing of audio with VapourSynth and FFmpeg.&quot;&quot;&quot;</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;eztrim&#39;</span><span class="p">]</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Dave &lt;orangechannel@pm.me&gt;&#39;</span>
-<span class="n">__date__</span> <span class="o">=</span> <span class="s1">&#39;26 July 2020&#39;</span>
+<span class="n">__date__</span> <span class="o">=</span> <span class="s1">&#39;29 July 2020&#39;</span>
 <span class="n">__credits__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;AzraelNewtype, for the original audiocutter.py.</span>
 <span class="s2">Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.</span>
 <span class="s2">doop, for explaining the use of None for empty slicing</span>
 <span class="s2">&quot;&quot;&quot;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;5.0.0&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;5.0.1&#39;</span>
 
 <span class="kn">import</span> <span class="nn">fractions</span>
-<span class="kn">import</span> <span class="nn">mimetypes</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pathlib</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
@@ -213,6 +212,8 @@
 <span class="sd">            ``src[15]`` must be entered as ``trims=(15, 16)``.</span>
 <span class="sd">    :param audio_file:    A string or path-like object refering to the source audio file&#39;s location</span>
 <span class="sd">                          (i.e. &#39;/path/to/audio_file.ext&#39;).</span>
+<span class="sd">                          If the extension is not recognized as a valid audio file extension for FFmpeg&#39;s encoders,</span>
+<span class="sd">                          the audio will be re-encoded to WAV losslessly.</span>
 <span class="sd">    :param outfile:       Either a filename &#39;out.ext&#39; or a full path &#39;/path/to/out.ext&#39;</span>
 <span class="sd">                          that will be used for the trimmed audio file.</span>
 <span class="sd">                          The extension will be automatically inserted for you,</span>
@@ -230,17 +231,41 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">audio_file</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;eztrim: </span><span class="si">{</span><span class="n">audio_file</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">types_map</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">audio_file</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;audio/&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">audio_file</span><span class="si">}</span><span class="s2"> does not seem to be an audio file; &quot;</span>
-                             <span class="sa">f</span><span class="s2">&quot;try to extract the audio track first if it is in a container&quot;</span><span class="p">)</span>
+
+        <span class="n">audio_file_name</span><span class="p">,</span> <span class="n">audio_file_ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">audio_file</span><span class="p">)</span>
+        <span class="n">ffmpeg_valid_encoder_extensions</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;.aac&#39;</span><span class="p">,</span> <span class="s1">&#39;.m4a&#39;</span><span class="p">,</span> <span class="s1">&#39;.adts&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.ac3&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.alac&#39;</span><span class="p">,</span> <span class="s1">&#39;.caf&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.dca&#39;</span><span class="p">,</span> <span class="s1">&#39;.dts&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.eac3&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.flac&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.gsm&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.mlp&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.mp2&#39;</span><span class="p">,</span> <span class="s1">&#39;.mp3&#39;</span><span class="p">,</span> <span class="s1">&#39;.mpga&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.opus&#39;</span><span class="p">,</span> <span class="s1">&#39;.spx&#39;</span><span class="p">,</span> <span class="s1">&#39;.ogg&#39;</span><span class="p">,</span> <span class="s1">&#39;.oga&#39;</span>
+            <span class="s1">&#39;.pcm&#39;</span><span class="p">,</span> <span class="s1">&#39;.raw&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.sbc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.thd&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.tta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.wav&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.wma&#39;</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">audio_file_ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ffmpeg_valid_encoder_extensions</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">audio_file_ext</span><span class="si">}</span><span class="s2"> is not a supported extension by FFmpeg&#39;s audio encoders, re-encoding to WAV&quot;</span><span class="p">,</span> <span class="ne">Warning</span><span class="p">)</span>
+            <span class="n">audio_file_ext</span> <span class="o">=</span> <span class="s1">&#39;.wav&#39;</span>
+            <span class="n">codec_args</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-c:a&#39;</span><span class="p">,</span> <span class="s1">&#39;copy&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">codec_args</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="n">outfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">outfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">audio_file</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_cut&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">audio_file</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="n">audio_file_name</span> <span class="o">+</span> <span class="s1">&#39;_cut&#39;</span> <span class="o">+</span> <span class="n">audio_file_ext</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">outfile</span><span class="p">)[</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">outfile</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">audio_file</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">audio_file</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">outfile</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">outfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">outfile</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">audio_file</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">outfile</span><span class="p">):</span>
+            <span class="n">outfile</span> <span class="o">+=</span> <span class="n">audio_file_ext</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">outfile</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">audio_file_ext</span><span class="p">:</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">outfile</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">audio_file_ext</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">outfile</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;eztrim: </span><span class="si">{</span><span class="n">outfile</span><span class="si">}</span><span class="s2"> already exists&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">ffmpeg_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -251,7 +276,7 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ffmpeg&#39;</span><span class="p">,</span> <span class="s1">&#39;-version&#39;</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;ffmpeg&#39;</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;ffmpeg executable not working properly&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ffmpeg executable not working properly&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;ffmpeg executable not found in PATH&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
 
@@ -304,28 +329,28 @@
     <span class="n">ffmpeg_silence</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">ffmpeg_path</span><span class="p">),</span> <span class="s1">&#39;-hide_banner&#39;</span><span class="p">,</span> <span class="s1">&#39;-loglevel&#39;</span><span class="p">,</span> <span class="s1">&#39;16&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">quiet</span> <span class="k">else</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">ffmpeg_path</span><span class="p">),</span> <span class="s1">&#39;-hide_banner&#39;</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cut_ts_s</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="n">ffmpeg_silence</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">,</span> <span class="s1">&#39;-vn&#39;</span><span class="p">,</span> <span class="s1">&#39;-ss&#39;</span><span class="p">,</span> <span class="n">cut_ts_s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;-to&#39;</span><span class="p">,</span> <span class="n">cut_ts_e</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;-c:a&#39;</span><span class="p">,</span> <span class="s1">&#39;copy&#39;</span><span class="p">,</span> <span class="n">outfile</span><span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">ffmpeg_silence</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">,</span> <span class="s1">&#39;-vn&#39;</span><span class="p">,</span> <span class="s1">&#39;-ss&#39;</span><span class="p">,</span> <span class="n">cut_ts_s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;-to&#39;</span><span class="p">,</span> <span class="n">cut_ts_e</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">codec_args</span> <span class="o">+</span> <span class="p">[</span><span class="n">outfile</span><span class="p">]</span>
         <span class="n">run</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
         <span class="k">return</span>
 
     <span class="n">times</span> <span class="o">=</span> <span class="p">[[</span><span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cut_ts_s</span><span class="p">,</span> <span class="n">cut_ts_e</span><span class="p">)]</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s1">&#39;_temp_concat.txt&#39;</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;_temp_concat.txt already exists, quitting&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s1">&#39;_acsuite_temp_concat.txt&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;_acsuite_temp_concat.txt already exists, quitting&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">concat_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;_temp_concat.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">concat_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;_acsuite_temp_concat.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
         <span class="n">temp_filelist</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">time</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
-        <span class="n">outfile_tmp</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;_temp_output_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">outfile</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">outfile_tmp</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;_acsuite_temp_output_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">outfile</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">concat_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;file </span><span class="si">{</span><span class="n">outfile_tmp</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">temp_filelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outfile_tmp</span><span class="p">)</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="n">ffmpeg_silence</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">,</span> <span class="s1">&#39;-vn&#39;</span><span class="p">,</span> <span class="s1">&#39;-ss&#39;</span><span class="p">,</span> <span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;-to&#39;</span><span class="p">,</span> <span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;-c:a&#39;</span><span class="p">,</span> <span class="s1">&#39;copy&#39;</span><span class="p">,</span> <span class="n">outfile_tmp</span><span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">ffmpeg_silence</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">,</span> <span class="s1">&#39;-vn&#39;</span><span class="p">,</span> <span class="s1">&#39;-ss&#39;</span><span class="p">,</span> <span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;-to&#39;</span><span class="p">,</span> <span class="n">time</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">codec_args</span> <span class="o">+</span> <span class="p">[</span><span class="n">outfile_tmp</span><span class="p">]</span>
         <span class="n">run</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
     <span class="n">concat_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="n">ffmpeg_silence</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;concat&#39;</span><span class="p">,</span> <span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;_temp_concat.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;copy&#39;</span><span class="p">,</span> <span class="n">outfile</span><span class="p">]</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">ffmpeg_silence</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;concat&#39;</span><span class="p">,</span> <span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;_acsuite_temp_concat.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;copy&#39;</span><span class="p">,</span> <span class="n">outfile</span><span class="p">]</span>
     <span class="n">run</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
-    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;_temp_concat.txt&#39;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;_acsuite_temp_concat.txt&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">temp_filelist</span><span class="p">:</span>
         <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
 

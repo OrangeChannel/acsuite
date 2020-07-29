@@ -22,7 +22,7 @@ copyright = ''
 author = 'Dave <orangechannel@pm.me>'
 
 # The full version, including alpha/beta/rc tags
-version = release = '5.0.0'
+version = release = '5.0.1'
 
 
 # -- General configuration ---------------------------------------------------

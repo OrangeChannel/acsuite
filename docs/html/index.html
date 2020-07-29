@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>acsuite documentation &mdash; acsuite 5.0.0 documentation</title>
+  <title>acsuite documentation &mdash; acsuite 5.0.1 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                5.0.0
+                5.0.1
               </div>
             
           
@@ -154,7 +154,7 @@
 <h1>acsuite documentation<a class="headerlink" href="#acsuite-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<span class="target" id="module-acsuite"></span><p>Frame-based cutting/trimming/splicing of audio with VapourSynth.</p>
+<span class="target" id="module-acsuite"></span><p>Frame-based cutting/trimming/splicing of audio with VapourSynth and FFmpeg.</p>
 <dl class="py function">
 <dt id="acsuite.eztrim">
 <code class="sig-prename descclassname">acsuite.</code><code class="sig-name descname">eztrim</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">clip</span></em>, <em class="sig-param"><span class="n">trims</span></em>, <em class="sig-param"><span class="n">audio_file</span></em>, <em class="sig-param"><span class="n">outfile</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">ffmpeg_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">quiet</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/acsuite.html#eztrim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#acsuite.eztrim" title="Permalink to this definition">¶</a></dt>
@@ -191,7 +191,9 @@ Single frame slices must be represented as a normal slice.</p>
 </div></blockquote>
 </p></li>
 <li><p><strong>audio_file</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PathLike</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – A string or path-like object refering to the source audio file’s location
-(i.e. ‘/path/to/audio_file.ext’).</p></li>
+(i.e. ‘/path/to/audio_file.ext’).
+If the extension is not recognized as a valid audio file extension for FFmpeg’s encoders,
+the audio will be re-encoded to WAV losslessly.</p></li>
 <li><p><strong>outfile</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">PathLike</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]) – Either a filename ‘out.ext’ or a full path ‘/path/to/out.ext’
 that will be used for the trimmed audio file.
 The extension will be automatically inserted for you,
