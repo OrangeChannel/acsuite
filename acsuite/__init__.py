@@ -106,6 +106,7 @@ def eztrim(clip: vs.VideoNode,
         if audio_file_ext not in ffmpeg_valid_encoder_extensions:
             warn(f"{audio_file_ext} is not a supported extension by FFmpeg's audio encoders, re-encoding to WAV", Warning)
             audio_file_ext = '.wav'
+            codec_args = []
         else:
             codec_args = ['-c:a', 'copy']
 
