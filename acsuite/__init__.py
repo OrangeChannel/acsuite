@@ -126,13 +126,13 @@ def eztrim(clip: vs.VideoNode,
             ffmpeg_path = which('ffmpeg')
         else:
             if not os.path.isfile(ffmpeg_path):
-                raise FileNotFoundError(f"ffmpeg executable at {ffmpeg_path} not found")
+                raise FileNotFoundError(f"eztrim: ffmpeg executable at {ffmpeg_path} not found")
             try:
                 args = ['ffmpeg', '-version']
                 if subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout.split()[0] != 'ffmpeg':
-                    raise ValueError("ffmpeg executable not working properly")
+                    raise ValueError("eztrim: ffmpeg executable not working properly")
             except FileNotFoundError:
-                raise FileNotFoundError("ffmpeg executable not found in PATH") from None
+                raise FileNotFoundError("eztrim: ffmpeg executable not found in PATH") from None
 
     # error checking ------------------------------------------------------------------------
     if not isinstance(trims, (list, tuple)):
