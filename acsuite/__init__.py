@@ -244,9 +244,14 @@ def clip_to_timecodes(src_clip: vs.VideoNode) -> collections.deque:
     """Cached function to return a list of timecodes for vfr clips."""
     timecodes = collections.deque([0.0], maxlen=src_clip.num_frames + 1)
     curr_time = fractions.Fraction()
+    init_percentage = 0
     for frame in src_clip.frames():
         curr_time += fractions.Fraction(frame.props['_DurationNum'], frame.props['_DurationDen'])
         timecodes.append(float(curr_time))
+        percentage_done = round(100 * len(timecodes) / src_clip.num_frames)
+        if percentage_done % 10 == 0 and percentage_done != init_percentage:
+            print(rf"Finding timecodes for variable-framerate clip: {percentage_done}% done")
+            init_percentage = percentage_done
     return timecodes
 
 
