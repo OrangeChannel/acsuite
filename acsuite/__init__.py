@@ -8,7 +8,9 @@ doop, for explaining the use of None for empty slicing
 """
 __version__ = '5.0.1'
 
+import collections
 import fractions
+import functools
 import os
 import pathlib
 import subprocess
@@ -158,21 +160,22 @@ def eztrim(clip: vs.VideoNode,
             raise ValueError("eztrim: a single tuple trim must have 2 elements")
     # --------------------------------------------
 
-    num_frames, fps = clip.num_frames, clip.fps
+    num_frames = clip.num_frames
+    ts = functools.partial(f2ts, src_clip=clip)
 
     if isinstance(trims, tuple):
         start, end = _negative_to_positive(num_frames, *trims)
         if end <= start:
             raise ValueError(f"eztrim: the trim {trims} is not logical")
-        cut_ts_s: List[str] = [_f2ts(fps, start)]
-        cut_ts_e: List[str] = [_f2ts(fps, end)]
+        cut_ts_s: List[str] = [ts(start)]
+        cut_ts_e: List[str] = [ts(end)]
         if debug:
             return {'s': start, 'e': end, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
     else:
         starts, ends = _negative_to_positive(num_frames, [s for s, e in trims], [e for s, e in trims])
         if _check_ordered(starts, ends):
-            cut_ts_s = [_f2ts(fps, f) for f in starts]
-            cut_ts_e = [_f2ts(fps, f) for f in ends]
+            cut_ts_s = [ts(f) for f in starts]
+            cut_ts_e = [ts(f) for f in ends]
         else:
             raise ValueError("eztrim: the trims are not logical")
         if debug:
@@ -207,17 +210,44 @@ def eztrim(clip: vs.VideoNode,
         os.remove(file)
 
 
-def _f2ts(fps: fractions.Fraction, f: int) -> str:
-    """Converts frame number to HH:mm:ss.mmm timestamp based on framerate."""
-    t = round(10 ** 9 * f * fps ** -1)
+def f2ts(f: int, /, *, precision: int = 3, src_clip: vs.VideoNode) -> str:
+    """Converts frame number to a timestamp based on framerate.
 
-    s = t / 10 ** 9
+    Can handle variable-frame-rate clips as well, using similar methods to that of vspipe --timecodes.
+    Meant to be called as a functools.partial with 'src_clip' specified before-hand.
+    """
+    if precision not in [0, 3, 6, 9]:
+        raise ValueError(f"f2ts: the precision {precision} must be a multiple of 3 (including 0)")
+    if src_clip.fps != fractions.Fraction(0, 1):
+        t = round(10 ** 9 * f * src_clip.fps ** -1)
+        s = t / 10 ** 9
+    else:
+        s = clip_to_timecodes(src_clip)[f]
+
     m = s // 60
     s %= 60
     h = m // 60
     m %= 60
 
-    return f'{h:02.0f}:{m:02.0f}:{s:06.3f}'
+    if precision == 0:
+        return f'{h:02.0f}:{m:02.0f}:{round(s):02}'
+    elif precision == 3:
+        return f'{h:02.0f}:{m:02.0f}:{s:06.3f}'
+    elif precision == 6:
+        return f'{h:02.0f}:{m:02.0f}:{s:09.6f}'
+    elif precision == 9:
+        return f'{h:02.0f}:{m:02.0f}:{s:012.9f}'
+
+
+@functools.lru_cache
+def clip_to_timecodes(src_clip: vs.VideoNode) -> collections.deque:
+    """Cached function to return a list of timecodes for vfr clips."""
+    timecodes = collections.deque([0.0], maxlen=src_clip.num_frames + 1)
+    curr_time = fractions.Fraction()
+    for frame in src_clip.frames():
+        curr_time += fractions.Fraction(frame.props['_DurationNum'], frame.props['_DurationDen'])
+        timecodes.append(float(curr_time))
+    return timecodes
 
 
 _Neg2pos_in = Union[List[Optional[int]], Optional[int]]
