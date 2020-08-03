@@ -8,11 +8,12 @@ import acsuite
 
 class ACsuiteTests(unittest.TestCase):
     BLANK_CLIP = vs.core.std.BlankClip(format=vs.YUV420P8, length=100, fpsnum=5, fpsden=1)
+    VFR_CLIP = vs.core.std.BlankClip(fpsnum=24000, fpsden=1001, length=5000) + vs.core.std.BlankClip(fpsnum=30000, fpsden=1001, length=5000)
 
     def test_default_clip(self):
         self.assertEqual(self.BLANK_CLIP.num_frames, 100)
         self.assertEqual(self.BLANK_CLIP.fps, Fraction(5, 1))
-        self.assertEqual(acsuite._f2ts(self.BLANK_CLIP.fps, self.BLANK_CLIP.num_frames), '00:00:20.000')
+        self.assertEqual(acsuite.f2ts(self.BLANK_CLIP.num_frames, src_clip=self.BLANK_CLIP), '00:00:20.000')
 
     def test_eztrim(self):
         with self.assertRaisesRegex(TypeError, 'trims must be a list of 2-tuples'):
@@ -72,8 +73,11 @@ class ACsuiteTests(unittest.TestCase):
         self.assertTrue(acsuite._check_ordered([0, 2, 4], [1, 3, 5]))
 
     def test_f2ts(self):
-        self.assertEqual(acsuite._f2ts(self.BLANK_CLIP.fps, 0), '00:00:00.000')
-        self.assertEqual(acsuite._f2ts(self.BLANK_CLIP.fps, 69), '00:00:13.800')
+        self.assertEqual(acsuite.f2ts(0, src_clip=self.BLANK_CLIP), '00:00:00.000')
+        self.assertEqual(acsuite.f2ts(69, src_clip=self.BLANK_CLIP), '00:00:13.800')
+        self.assertEqual(acsuite.f2ts(4000, precision=9, src_clip=self.VFR_CLIP), '00:02:46.833333333')
+        self.assertEqual(acsuite.f2ts(6000, precision=9, src_clip=self.VFR_CLIP), '00:04:01.908333333')
+
 
     def test_negative_to_positive(self):
         with self.assertRaisesRegex(ValueError, 'out of bounds'):
