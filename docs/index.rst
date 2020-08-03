@@ -6,5 +6,5 @@ acsuite documentation
    :caption: Contents:
 
 .. automodule:: acsuite
-   :members:
+   :members: eztrim
    :show-inheritance:
