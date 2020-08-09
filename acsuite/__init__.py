@@ -113,7 +113,7 @@ def eztrim(clip: vs.VideoNode,
             audio_file_ext = '.wav'
             codec_args = []
         else:
-            codec_args = ['-c:a', 'copy']
+            codec_args = ['-c:a', 'copy', '-rf64', 'auto']
 
         if outfile is None:
             outfile = audio_file_name + '_cut' + audio_file_ext
