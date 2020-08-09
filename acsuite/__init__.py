@@ -105,7 +105,7 @@ def eztrim(clip: vs.VideoNode,
             '.sbc',
             '.thd',
             '.tta',
-            '.wav',
+            '.wav', 'w64',
             '.wma',
         }
         if audio_file_ext not in ffmpeg_valid_encoder_extensions:
