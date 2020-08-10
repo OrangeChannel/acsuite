@@ -8,7 +8,7 @@ using VapourSynth clip information.
 
 ## Functions:
 
-### eztrim(clip, trims, audio_file[, outfile, ffmpeg_path=, quiet=])
+### eztrim(clip, trims, audio_file[, outfile, ffmpeg_path=, quiet=, timecodes_file=])
 
 ```py
 import vapoursynth as vs
