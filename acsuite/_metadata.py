@@ -7,4 +7,4 @@ Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
 doop, for explaining the use of None for empty slicing.
 Vardë, for fixing FFmpeg's >4GB WAV file issues.
 """
-__version__ = '5.3.0'
+__version__ = '5.3.1'
