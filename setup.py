@@ -3,8 +3,7 @@ from distutils.util import convert_path
 import setuptools
 
 meta = {}
-with open(convert_path('acsuite/__init__.py')) as meta_file:
-    exec(meta_file.read(), meta)
+exec(open(convert_path('acsuite/_metadata.py')).read(), meta)
 
 with open('README.md') as fh:
     long_description = fh.read()

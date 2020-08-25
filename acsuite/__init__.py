@@ -1,13 +1,9 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth and FFmpeg."""
 __all__ = ['clip_to_timecodes', 'eztrim', 'f2ts']
-__author__ = 'Dave <orangechannel@pm.me>'
-__date__ = '25 August 2020'
-__credits__ = """AzraelNewtype, for the original audiocutter.py.
-Ricardo Constantino (wiiaboo), for vfr.py from which this was inspired.
-doop, for explaining the use of None for empty slicing
-Vardë, for fixing FFmpeg's >4GB WAV file issues
-"""
-__version__ = '5.3.0'
+try:
+    from _metadata import __author__, __credits__, __date__, __version__
+except ImportError:
+    __author__ = __credits__ = __date__ = __version__ = 'unknown (portable mode)'
 
 import collections
 import fractions
