@@ -1,5 +1,5 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth and FFmpeg."""
-__all__ = ['eztrim']
+__all__ = ['clip_to_timecodes', 'eztrim', 'f2ts']
 __author__ = 'Dave <orangechannel@pm.me>'
 __date__ = '10 August 2020'
 __credits__ = """AzraelNewtype, for the original audiocutter.py.
