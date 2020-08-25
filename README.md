@@ -33,6 +33,30 @@ eztrim(src, [(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,None)], afile)
 
 Uses the file extension of the input _audio_file_ to output a cut/trimmed audio file with the same extension. If no _outfile_ is given, defaults to `audio_file_cut.ext`.
 
+---
+
+## Utility Functions:
+
+### f2ts(f, src_clip=[, precision=, timecodes_file=])
+
+Useful for finding the timestamp for a frame number.
+
+```py
+from functools import partial
+import vapoursynth as vs
+core = vs.core
+
+clip = core.std.BlankClip()
+ts = partial(f2ts, src_clip=clip)
+
+ts(5), ts(9), ts(clip.num_frames), ts(-1)
+# ('00:00:00.208', '00:00:00.375', '00:00:10.000', '00:00:09.958')
+```
+
+### clip_to_timecodes(src_clip)
+
+Returns a list of timecodes for VFR clips. Used as a fallback when *timecodes_file* is not given to `f2ts` or `eztrim`.
+
 ## Getting Started
 
 ### Dependencies
