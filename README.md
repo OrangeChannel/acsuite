@@ -1,5 +1,7 @@
 # acsuite
 
+[![Documentation Status](https://readthedocs.org/projects/acsuite/badge/?version=latest)](https://acsuite.readthedocs.io/en/latest/?badge=latest)
+
 audiocutter(.py) replacement for VapourSynth.
 
 Allows for easy frame-based cutting/trimming/splicing of audio files
@@ -69,7 +71,7 @@ if you are able to use a `pip` executable directly.
 
 ## Help!
 
-Check out the [documentation](https://orangechannel.github.io/acsuite/html/index.html) or use Python's builtin `help()`: 
+Check out the [documentation](https://acsuite.readthedocs.io/en/latest/) or use Python's builtin `help()`: 
 
 ```py
 help('acsuite')

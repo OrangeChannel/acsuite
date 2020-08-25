@@ -33,7 +33,7 @@ setuptools.setup(
     ],
     keywords="audio vapoursynth encoding trim cut ffmpeg",
     project_urls={
-        'Documentation': 'https://orangechannel.github.io/acsuite/html/index.html',
+        'Documentation': 'https://acsuite.readthedocs.io/en/latest/',
         'Source': 'https://github.com/OrangeChannel/acsuite/blob/master/acsuite/__init__.py',
         'Tracker': 'https://github.com/OrangeChannel/acsuite/issues',
     },
