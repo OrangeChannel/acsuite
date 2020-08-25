@@ -255,7 +255,13 @@ def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[Path] = None
     """
     if precision not in [0, 3, 6, 9]:
         raise ValueError(f"f2ts: the precision {precision} must be a multiple of 3 (including 0)")
-    if src_clip.fps != fractions.Fraction(0, 1):
+
+    if f < 0:
+        f += src_clip.num_frames
+
+    if f == 0:
+        s = 0
+    elif src_clip.fps != fractions.Fraction(0, 1):
         t = round(10 ** 9 * f * src_clip.fps ** -1)
         s = t / 10 ** 9
     else:
