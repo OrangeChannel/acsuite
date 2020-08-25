@@ -17,7 +17,7 @@ import pathlib
 import subprocess
 from shutil import which
 from subprocess import run
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Deque, Dict, List, Optional, Tuple, Union
 from warnings import simplefilter, warn
 
 import vapoursynth as vs
@@ -252,7 +252,7 @@ def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[Path] = None
 
 
 @functools.lru_cache
-def clip_to_timecodes(src_clip: vs.VideoNode) -> collections.deque:
+def clip_to_timecodes(src_clip: vs.VideoNode) -> Deque[float]:
     """Cached function to return a list of timecodes for vfr clips."""
     timecodes = collections.deque([0.0], maxlen=src_clip.num_frames + 1)
     curr_time = fractions.Fraction()
