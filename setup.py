@@ -1,4 +1,10 @@
+from distutils.util import convert_path
+
 import setuptools
+
+meta = {}
+with open(convert_path('acsuite/__init__.py')) as meta_file:
+    exec(meta_file.read(), meta)
 
 with open('README.md') as fh:
     long_description = fh.read()
@@ -8,13 +14,13 @@ with open('requirements.txt') as fh:
 
 setuptools.setup(
     name='acsuite-orangechannel',
-    version='5.2.0',
+    version=meta['__version__'],
     description='Frame-based cutting/trimming/splicing of audio with VapourSynth and FFmpeg.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/OrangeChannel/acsuite',
-    author='Dave',
-    author_email='orangechannel@pm.me',
+    author=meta['__author__'].split()[0],
+    author_email=meta['__author__'].split()[1][1:-1],
     license='UNLICENSE',
     install_requires=install_requires,
     classifiers=[
