@@ -6,5 +6,7 @@ acsuite documentation
    :caption: Contents:
 
 .. automodule:: acsuite
-   :members: eztrim
-   :show-inheritance:
+
+.. autofunction:: eztrim
+.. autofunction:: f2ts
+.. autofunction:: clip_to_timecodes
