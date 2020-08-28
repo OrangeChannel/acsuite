@@ -1,11 +1,7 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth and FFmpeg."""
 __all__ = ['clip_to_timecodes', 'eztrim', 'f2ts']
 try:
-    from . import _metadata
-    __author__ = _metadata.__author__
-    __credits__ = _metadata.__credits__
-    __date__ = _metadata.__date__
-    __version__ = _metadata.__version__
+    from ._metadata import __author__, __credits__, __date__, __version__
 except ImportError:
     __author__ = __credits__ = __date__ = __version__ = 'unknown (portable mode)'
 
