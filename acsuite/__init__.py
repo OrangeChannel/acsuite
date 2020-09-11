@@ -104,7 +104,7 @@ def eztrim(clip: vs.VideoNode,
             '.gsm',
             '.mlp',
             '.mp2', '.mp3', '.mpga',
-            '.opus', '.spx', '.ogg', '.oga'
+            '.opus', '.spx', '.ogg', '.oga',
             '.pcm', '.raw',
             '.sbc',
             '.thd',
