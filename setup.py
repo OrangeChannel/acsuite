@@ -9,6 +9,7 @@ with open('README.md') as fh:
     long_description = fh.read()
 
 with open('requirements.txt') as fh:
+    # this is so it gets recognized by GitHub's packages thing
     install_requires = fh.read()
 
 setuptools.setup(
@@ -22,6 +23,9 @@ setuptools.setup(
     author_email=meta['__author__'].split()[1][1:-1],
     license='UNLICENSE',
     install_requires=install_requires,
+    extras_require={
+        "VFR Progress Bar": ['rich>=6.1.2']
+    },
     classifiers=[
         "Intended Audience :: End Users/Desktop",
         "License :: Public Domain",

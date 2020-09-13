@@ -292,17 +292,28 @@ def clip_to_timecodes(src_clip: vs.VideoNode) -> Deque[float]:
 
     Subsequent calls on the same clip will return the previously generated list of timecodes.
     The timecodes are `floats` representing seconds from the start of the `src_clip`.
+
+    If you have ``rich`` installed, will output a pretty progress bar as this process can take a long time.
     """
+    try:
+        from rich.progress import track
+        rich = True
+    except ImportError:
+        track = lambda x, description, total: x
+        rich = False
     timecodes = collections.deque([0.0], maxlen=src_clip.num_frames + 1)
     curr_time = fractions.Fraction()
     init_percentage = 0
-    for frame in src_clip.frames():
+    for frame in track(src_clip.frames(), description='Finding timestamps...', total=src_clip.num_frames):
         curr_time += fractions.Fraction(frame.props['_DurationNum'], frame.props['_DurationDen'])
         timecodes.append(float(curr_time))
-        percentage_done = round(100 * len(timecodes) / src_clip.num_frames)
-        if percentage_done % 10 == 0 and percentage_done != init_percentage:
-            print(rf"Finding timecodes for variable-framerate clip: {percentage_done}% done")
-            init_percentage = percentage_done
+        if rich:
+            pass  # if ran in a normal console/terminal, should render a pretty progress bar
+        else:
+            percentage_done = round(100 * len(timecodes) / src_clip.num_frames)
+            if percentage_done % 10 == 0 and percentage_done != init_percentage:
+                print(rf"Finding timecodes for variable-framerate clip: {percentage_done}% done")
+                init_percentage = percentage_done
     return timecodes
 
 
