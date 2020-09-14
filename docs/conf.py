@@ -82,3 +82,4 @@ pygments_style = 'sphinx'
 # -- Extension configuration -------------------------------------------------
 
 todo_include_todos = True
+typehints_document_rtype = False
