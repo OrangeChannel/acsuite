@@ -355,5 +355,5 @@ def _check_ordered(starts: List[int], ends: List[int]) -> bool:
     if not all(starts[i] < ends[i] for i in range(len(starts))):
         return False  # makes sure pair is at least one frame long
     if not all(ends[i] < starts[i + 1] for i in range(len(starts) - 1)):
-        return False  # checks if all ends are less than next start
+        warn('_check_ordered: one or more trims will cause overlapping', Warning)
     return True
