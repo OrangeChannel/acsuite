@@ -206,7 +206,7 @@ def eztrim(clip: vs.VideoNode,
 
     times = [[s, e] for s, e in zip(cut_ts_s, cut_ts_e)]
     if os.path.isfile('_acsuite_temp_concat.txt'):
-        raise ValueError("_acsuite_temp_concat.txt already exists, quitting")
+        raise ValueError("eztrim: _acsuite_temp_concat.txt already exists, quitting")
     else:
         concat_file = open('_acsuite_temp_concat.txt', 'w')
         temp_filelist = []
