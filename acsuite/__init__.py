@@ -358,3 +358,62 @@ def _check_ordered(starts: List[int], ends: List[int]) -> bool:
     if not all(ends[i] < starts[i + 1] for i in range(len(starts) - 1)):
         warn('_check_ordered: one or more trims will cause overlapping', Warning)
     return True
+
+
+def concat(audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] = None, quiet: bool = False) -> str:
+    """
+    _
+    :param audio_files:
+    :param outfile:
+    :param ffmpeg_path:
+    :param quiet:
+    :return:
+    """
+    # --- checking for ffmpeg ------------------------------------------------------------------------------------------
+    if ffmpeg_path is None:
+        ffmpeg_path = which('ffmpeg')
+    else:
+        if not os.path.isfile(ffmpeg_path):
+            raise FileNotFoundError(f"concat: ffmpeg executable at {ffmpeg_path} not found")
+        try:
+            args = ['ffmpeg', '-version']
+            if subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout.split()[0] != 'ffmpeg':
+                raise ValueError("concat: ffmpeg executable not working properly")
+        except FileNotFoundError:
+            raise FileNotFoundError("concat: ffmpeg executable not found in PATH") from None
+
+    # --- checking for filename issues and file extension support ------------------------------------------------------
+    if len(audio_files) < 2:
+        raise ValueError("concat: requires 2 or more audio files to concatenate")
+    audio_file_extensions = set([os.path.splitext(af)[1] for af in audio_files] + [os.path.splitext(outfile)[1]])
+    if len(audio_file_extensions) > 1:
+        raise ValueError("concat: all files must have the same extension")
+    if (ext := audio_file_extensions.pop()) not in VALID_FFMPEG_EXTENSIONS:
+        raise ValueError(f"concat: '{ext}' is not a valid extension recognized by any known FFmpeg encoders")
+    for af in audio_files:
+        if not os.path.isfile(af):
+            raise FileNotFoundError(f"concat: {af} not found")
+    if os.path.isfile(outfile):
+        raise FileExistsError(f"eztrim: {outfile} already exists")
+    # ------------------------------------------------------------------------------------------------------------------
+
+    ffmpeg_silence = [ffmpeg_path, '-hide_banner', '-loglevel', '16'] if quiet else [ffmpeg_path, '-hide_banner']
+
+    if os.path.isfile('_acsuite_temp_concat.txt'):
+        raise ValueError("concat: _acsuite_temp_concat.txt already exists, quitting")
+    concat_file = open('_acsuite_temp_concat.txt', 'w')
+    temp_filelist = []
+    for af in audio_files:
+        concat_file.write(f"file {af}\n")
+        temp_filelist.append(af)
+
+    concat_file.close()
+    args = ffmpeg_silence + ['-f', 'concat', '-i', '_acsuite_temp_concat.txt', '-c', 'copy', outfile]
+    run(args)
+
+    os.remove('_acsuite_temp_concat.txt')
+    for file in temp_filelist:
+        os.remove(file)
+
+    return outfile
+
