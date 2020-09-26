@@ -34,7 +34,7 @@ def eztrim(clip: vs.VideoNode,
            quiet: bool = False,
            timecodes_file: Optional[Path] = None,
            debug: bool = False
-           ) -> Optional[Dict[str, Union[int, List[int], List[str]]]]:
+           ) -> Union[Dict, str, None]:
     """
     Simple trimming function that follows VapourSynth/Python slicing syntax.
 
@@ -86,14 +86,18 @@ def eztrim(clip: vs.VideoNode,
                            Not needed for CFR clips.
 
     :param debug:         Used for testing purposes.
+
+    :return: Returns output file name as a string for other functions.
     """
     if debug:
         pass
     else:
+        # --- checking for filename issues and file extension support --------------------------------------------------
         if not os.path.isfile(audio_file):
             raise FileNotFoundError(f"eztrim: {audio_file} not found")
 
         audio_file_name, audio_file_ext = os.path.splitext(audio_file)
+        # fmt: off
         ffmpeg_valid_encoder_extensions = {
             '.aac', '.m4a', '.adts',
             '.ac3',
@@ -112,23 +116,27 @@ def eztrim(clip: vs.VideoNode,
             '.wav', '.w64',
             '.wma',
         }
-        if audio_file_ext not in ffmpeg_valid_encoder_extensions:
-            warn(f"{audio_file_ext} is not a supported extension by FFmpeg's audio encoders, re-encoding to WAV", Warning)
-            audio_file_ext = '.wav'
-            codec_args = []
-        else:
-            codec_args = ['-c:a', 'copy', '-rf64', 'auto']
+        # fmt: on
+        codec_args = []
 
+        if audio_file_ext in ffmpeg_valid_encoder_extensions:
+            codec_args += ['-c:a', 'copy', '-rf64', 'auto']
+        else:
+            warn(f"eztrim: {audio_file_ext} is not a supported extension by FFmpeg's audio encoders, re-encoding to WAV", Warning)
+            audio_file_ext = '.wav'  # defaults to pcm_s16le so a 24-bit input with wrong ext will be downscaled
+
+        # --- re-naming outfile if not formatted correctly -------------------------------------------------------------
         if outfile is None:
             outfile = audio_file_name + '_cut' + audio_file_ext
         elif not os.path.splitext(outfile)[1]:
             outfile += audio_file_ext
-        elif os.path.splitext(outfile)[-1] != audio_file_ext:
+        elif os.path.splitext(outfile)[1] != audio_file_ext:
             outfile = os.path.splitext(outfile)[0] + audio_file_ext
 
         if os.path.isfile(outfile):
             raise FileExistsError(f"eztrim: {outfile} already exists")
 
+        # --- checking for ffmpeg --------------------------------------------------------------------------------------
         if ffmpeg_path is None:
             ffmpeg_path = which('ffmpeg')
         else:
@@ -141,10 +149,12 @@ def eztrim(clip: vs.VideoNode,
             except FileNotFoundError:
                 raise FileNotFoundError("eztrim: ffmpeg executable not found in PATH") from None
 
-        if timecodes_file is not None and not os.path.isfile(timecodes_file):
+        # --- timecodes ------------------------------------------------------------------------------------------------
+
+        if (timecodes_file is not None) and (not os.path.isfile(timecodes_file)):
             raise FileNotFoundError(f"eztrim: {timecodes_file} not found")
 
-    # error checking ------------------------------------------------------------------------
+    # --- trims --------------------------------------------------------------------------------------------------------
     if not isinstance(trims, (list, tuple)):
         raise TypeError("eztrim: trims must be a list of 2-tuples (or just one 2-tuple)")
 
@@ -152,7 +162,7 @@ def eztrim(clip: vs.VideoNode,
         warn("eztrim: using a list of one 2-tuple is not recommended; "
              "for a single trim, directly use a tuple: `trims=(5,-2)` instead of `trims=[(5,-2)]`", SyntaxWarning)
         if isinstance(trims[0], tuple):
-            trims = trims[0]
+            trims = trims[0]  # convert nested tuple in a list to just the tuple
         else:
             raise ValueError("eztrim: the inner trim must be a tuple")
     elif isinstance(trims, list):
@@ -168,35 +178,34 @@ def eztrim(clip: vs.VideoNode,
     if isinstance(trims, tuple):
         if len(trims) != 2:
             raise ValueError("eztrim: a single tuple trim must have 2 elements")
-    # --------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
 
     num_frames = clip.num_frames
     ts = functools.partial(f2ts, timecodes_file=timecodes_file, src_clip=clip)
+    ffmpeg_silence = [str(ffmpeg_path), '-hide_banner', '-loglevel', '16'] if quiet else [str(ffmpeg_path), '-hide_banner']
 
+    # --- single trim --------------------------------------------------------------------------------------------------
     if isinstance(trims, tuple):
         start, end = _negative_to_positive(num_frames, *trims)
         if end <= start:
             raise ValueError(f"eztrim: the trim {trims} is not logical")
-        cut_ts_s: List[str] = [ts(start)]
-        cut_ts_e: List[str] = [ts(end)]
+        debug_dict = {'s': start, 'e': end}
+        args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', ts(start), '-to', ts(end)] + codec_args + [outfile]
+        debug_dict.update({'args': args})
         if debug:
-            return {'s': start, 'e': end, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
-    else:
-        starts, ends = _negative_to_positive(num_frames, [s for s, e in trims], [e for s, e in trims])
-        if _check_ordered(starts, ends):
-            cut_ts_s = [ts(f) for f in starts]
-            cut_ts_e = [ts(f) for f in ends]
-        else:
-            raise ValueError("eztrim: the trims are not logical")
-        if debug:
-            return {'s': starts, 'e': ends, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
-
-    ffmpeg_silence = [str(ffmpeg_path), '-hide_banner', '-loglevel', '16'] if quiet else [str(ffmpeg_path), '-hide_banner']
-
-    if len(cut_ts_s) == 1:
-        args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', cut_ts_s[0], '-to', cut_ts_e[0]] + codec_args + [outfile]
+            return debug_dict
         run(args)
-        return
+        return str(outfile)
+
+    # --- multiple trims with concatenation ----------------------------------------------------------------------------
+    starts, ends = _negative_to_positive(num_frames, [s for s, e in trims], [e for s, e in trims])
+    if not _check_ordered(starts, ends):
+        raise ValueError("eztrim: the trims are not logical")
+
+    cut_ts_s = [ts(f) for f in starts]
+    cut_ts_e = [ts(f) for f in ends]
+
+    debug_dict = {'s': starts, 'e': ends, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
 
     times = [[s, e] for s, e in zip(cut_ts_s, cut_ts_e)]
     if os.path.isfile('_acsuite_temp_concat.txt'):
@@ -209,6 +218,9 @@ def eztrim(clip: vs.VideoNode,
         concat_file.write(f"file {outfile_tmp}\n")
         temp_filelist.append(outfile_tmp)
         args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', time[0], '-to', time[1]] + codec_args + [outfile_tmp]
+        debug_dict.update({f'args_{key}': args})
+        if debug:
+            return debug_dict
         run(args)
 
     concat_file.close()
@@ -218,6 +230,8 @@ def eztrim(clip: vs.VideoNode,
     os.remove('_acsuite_temp_concat.txt')
     for file in temp_filelist:
         os.remove(file)
+
+    return str(outfile)
 
 
 def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[Path] = None, src_clip: vs.VideoNode) -> str:
@@ -315,35 +329,35 @@ def _negative_to_positive(num_frames: int, a: _Neg2pos_in, b: _Neg2pos_in) -> _N
     """Changes negative/zero index to positive based on num_frames."""
     single_trim = (isinstance(a, (int, type(None))) and isinstance(b, (int, type(None))))
 
-    # simplify analysis of a single trim
+    # --- single trim --------------------------------------------------------------------------------------------------
     if single_trim:
         a, b = (a or 0), (b or 0)
         if abs(a) > num_frames or abs(b) > num_frames:
             raise ValueError(f"_negative_to_positive: {max(abs(a), abs(b))} is out of bounds")
         return a if a >= 0 else num_frames + a, b if b > 0 else num_frames + b
 
-    else:
-        if len(a) != len(b):
-            raise ValueError("_negative_to_positive: lists must be same length")
+    # --- multiple trims -----------------------------------------------------------------------------------------------
+    if len(a) != len(b):
+        raise ValueError("_negative_to_positive: lists must be same length")
 
-        real_a, real_b = [(i or 0) for i in a], [(i or 0) for i in b]  # convert None to 0
+    real_a, real_b = [(i or 0) for i in a], [(i or 0) for i in b]  # convert None to 0
 
-        if not (all(abs(i) <= num_frames for i in real_a) and all(abs(i) <= num_frames for i in real_b)):
-            raise ValueError("_negative_to_positive: one or more trims are out of bounds")
+    if not (all(abs(i) <= num_frames for i in real_a) and all(abs(i) <= num_frames for i in real_b)):
+        raise ValueError("_negative_to_positive: one or more trims are out of bounds")
 
-        if all(i >= 0 for i in real_a) and all(i > 0 for i in real_b):
-            return real_a, real_b
+    if all(i >= 0 for i in real_a) and all(i > 0 for i in real_b):
+        return real_a, real_b
 
-        positive_a = [x if x >= 0 else num_frames + x for x in real_a]
-        positive_b = [y if y > 0 else num_frames + y for y in real_b]
+    positive_a = [x if x >= 0 else num_frames + x for x in real_a]
+    positive_b = [y if y > 0 else num_frames + y for y in real_b]
 
-        return positive_a, positive_b
+    return positive_a, positive_b
 
 
 def _check_ordered(starts: List[int], ends: List[int]) -> bool:
     """Checks if lists follow logical Python slicing."""
     if not all(starts[i] < ends[i] for i in range(len(starts))):
-        return False  # makes sure pair is at least one frame long
+        return False
     if not all(ends[i] < starts[i + 1] for i in range(len(starts) - 1)):
         warn('_check_ordered: one or more trims will cause overlapping', Warning)
     return True
