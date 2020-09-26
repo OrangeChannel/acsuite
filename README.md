@@ -1,11 +1,13 @@
 # acsuite
 
-[![Documentation Status](https://readthedocs.org/projects/acsuite/badge/?version=latest)](https://acsuite.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/acsuite/badge/?version=latest)](https://acsuite.readthedocs.io/en/latest/?badge=latest) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 audiocutter(.py) replacement for VapourSynth.
 
 Allows for easy frame-based cutting/trimming/splicing of audio files
 using VapourSynth clip information.
+
+Includes some extra tools for working with audio files or timestamps.
 
 
 ## Functions:
@@ -32,6 +34,14 @@ eztrim(src, [(3,22),(23,40),(48,49),(50,-20),(-10,-5),(97,None)], afile)
 ##### Output:
 
 Uses the file extension of the input _audio_file_ to output a cut/trimmed audio file with the same extension. If no _outfile_ is given, defaults to `audio_file_cut.ext`.
+
+### concat(audio_files, outfile[, ffmpeg_path=, quiet=])
+
+```py
+concat(['file.aac', 'file2.aac'], 'outfile.aac')
+```
+
+Will concatenate a list of audio files (paths given as strings) into one file using FFmpeg.
 
 ---
 
