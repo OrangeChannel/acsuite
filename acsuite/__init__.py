@@ -3,7 +3,7 @@ __all__ = ["clip_to_timecodes", "concat", "eztrim", "f2ts"]
 try:
     from ._metadata import __author__, __credits__, __date__, __version__
 except ImportError:
-    __author__ = __credits__ = __date__ = __version__ = 'unknown (portable mode)'
+    __author__ = __credits__ = __date__ = __version__ = "unknown (portable mode)"
 
 import collections
 import fractions
@@ -17,7 +17,7 @@ from warnings import simplefilter, warn
 
 import vapoursynth as vs
 
-simplefilter('always')  # display warnings
+simplefilter("always")  # display warnings
 
 Trim = Tuple[Optional[int], Optional[int]]
 
@@ -42,17 +42,19 @@ VALID_FFMPEG_EXTENSIONS = [
 ]
 # fmt: on
 
-def eztrim(clip: vs.VideoNode,
-           /,
-           trims: Union[List[Trim], Trim],
-           audio_file: str,
-           outfile: Optional[str] = None,
-           *,
-           ffmpeg_path: Optional[str] = None,
-           quiet: bool = False,
-           timecodes_file: Optional[str] = None,
-           debug: bool = False
-           ) -> Union[Dict, str, None]:
+
+def eztrim(
+    clip: vs.VideoNode,
+    /,
+    trims: Union[List[Trim], Trim],
+    audio_file: str,
+    outfile: Optional[str] = None,
+    *,
+    ffmpeg_path: Optional[str] = None,
+    quiet: bool = False,
+    timecodes_file: Optional[str] = None,
+    debug: bool = False,
+) -> Union[Dict, str, None]:
     """
     Simple trimming function that follows VapourSynth/Python slicing syntax.
 
@@ -115,14 +117,17 @@ def eztrim(clip: vs.VideoNode,
         codec_args = []
 
         if audio_file_ext in VALID_FFMPEG_EXTENSIONS:
-            codec_args += ['-c:a', 'copy', '-rf64', 'auto']
+            codec_args += ["-c:a", "copy", "-rf64", "auto"]
         else:
-            warn(f"eztrim: {audio_file_ext} is not a supported extension by FFmpeg's audio encoders, re-encoding to WAV", Warning)
-            audio_file_ext = '.wav'  # defaults to pcm_s16le so a 24-bit input with wrong ext will be downscaled
+            warn(
+                f"eztrim: {audio_file_ext} is not a supported extension by FFmpeg's audio encoders, re-encoding to WAV",
+                Warning,
+            )
+            audio_file_ext = ".wav"  # defaults to pcm_s16le so a 24-bit input with wrong ext will be downscaled
 
         # --- re-naming outfile if not formatted correctly -------------------------------------------------------------
         if outfile is None:
-            outfile = audio_file_name + '_cut' + audio_file_ext
+            outfile = audio_file_name + "_cut" + audio_file_ext
         elif not os.path.splitext(outfile)[1]:
             outfile += audio_file_ext
         elif os.path.splitext(outfile)[1] != audio_file_ext:
@@ -133,13 +138,13 @@ def eztrim(clip: vs.VideoNode,
 
         # --- checking for ffmpeg --------------------------------------------------------------------------------------
         if ffmpeg_path is None:
-            ffmpeg_path = which('ffmpeg')
+            ffmpeg_path = which("ffmpeg")
         else:
             if not os.path.isfile(ffmpeg_path):
                 raise FileNotFoundError(f"eztrim: ffmpeg executable at {ffmpeg_path} not found")
             try:
-                args = ['ffmpeg', '-version']
-                if subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout.split()[0] != 'ffmpeg':
+                args = ["ffmpeg", "-version"]
+                if subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout.split()[0] != "ffmpeg":
                     raise ValueError("eztrim: ffmpeg executable not working properly")
             except FileNotFoundError:
                 raise FileNotFoundError("eztrim: ffmpeg executable not found in PATH") from None
@@ -154,8 +159,11 @@ def eztrim(clip: vs.VideoNode,
         raise TypeError("eztrim: trims must be a list of 2-tuples (or just one 2-tuple)")
 
     if len(trims) == 1 and isinstance(trims, list):
-        warn("eztrim: using a list of one 2-tuple is not recommended; "
-             "for a single trim, directly use a tuple: `trims=(5,-2)` instead of `trims=[(5,-2)]`", SyntaxWarning)
+        warn(
+            "eztrim: using a list of one 2-tuple is not recommended; for a single trim,"
+            "directly use a tuple: `trims=(5,-2)` instead of `trims=[(5,-2)]`",
+            SyntaxWarning,
+        )
         if isinstance(trims[0], tuple):
             trims = trims[0]  # convert nested tuple in a list to just the tuple
             if len(trims) != 2:
@@ -183,16 +191,16 @@ def eztrim(clip: vs.VideoNode,
 
     num_frames = clip.num_frames
     ts = functools.partial(f2ts, timecodes_file=timecodes_file, src_clip=clip)
-    ffmpeg_silence = [ffmpeg_path, '-hide_banner', '-loglevel', '16'] if quiet else [ffmpeg_path, '-hide_banner']
+    ffmpeg_silence = [ffmpeg_path, "-hide_banner", "-loglevel", "16"] if quiet else [ffmpeg_path, "-hide_banner"]
 
     # --- single trim --------------------------------------------------------------------------------------------------
     if isinstance(trims, tuple):
         start, end = _negative_to_positive(num_frames, *trims)
         if end <= start:
             raise ValueError(f"eztrim: the trim {trims} is not logical")
-        debug_dict = {'s': start, 'e': end}
-        args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', ts(start), '-to', ts(end)] + codec_args + [outfile]
-        debug_dict.update({'args': args})
+        debug_dict = {"s": start, "e": end}
+        args = ffmpeg_silence + ["-i", audio_file, "-vn", "-ss", ts(start), "-to", ts(end)] + codec_args + [outfile]
+        debug_dict.update({"args": args})
         if debug:
             return debug_dict
         run(args)
@@ -206,29 +214,29 @@ def eztrim(clip: vs.VideoNode,
     cut_ts_s = [ts(f) for f in starts]
     cut_ts_e = [ts(f) for f in ends]
 
-    debug_dict = {'s': starts, 'e': ends, 'cut_ts_s': cut_ts_s, 'cut_ts_e': cut_ts_e}
+    debug_dict = {"s": starts, "e": ends, "cut_ts_s": cut_ts_s, "cut_ts_e": cut_ts_e}
 
     times = [[s, e] for s, e in zip(cut_ts_s, cut_ts_e)]
-    if os.path.isfile('_acsuite_temp_concat.txt'):
+    if os.path.isfile("_acsuite_temp_concat.txt"):
         raise ValueError("eztrim: _acsuite_temp_concat.txt already exists, quitting")
     else:
-        concat_file = open('_acsuite_temp_concat.txt', 'w')
+        concat_file = open("_acsuite_temp_concat.txt", "w")
         temp_filelist = []
     for key, time in enumerate(times):
-        outfile_tmp = f'_acsuite_temp_output_{key}' + os.path.splitext(outfile)[-1]
+        outfile_tmp = f"_acsuite_temp_output_{key}" + os.path.splitext(outfile)[-1]
         concat_file.write(f"file {outfile_tmp}\n")
         temp_filelist.append(outfile_tmp)
-        args = ffmpeg_silence + ['-i', audio_file, '-vn', '-ss', time[0], '-to', time[1]] + codec_args + [outfile_tmp]
-        debug_dict.update({f'args_{key}': args})
+        args = ffmpeg_silence + ["-i", audio_file, "-vn", "-ss", time[0], "-to", time[1]] + codec_args + [outfile_tmp]
+        debug_dict.update({f"args_{key}": args})
         if debug:
             return debug_dict
         run(args)
 
     concat_file.close()
-    args = ffmpeg_silence + ['-f', 'concat', '-i', '_acsuite_temp_concat.txt', '-c', 'copy', outfile]
+    args = ffmpeg_silence + ["-f", "concat", "-i", "_acsuite_temp_concat.txt", "-c", "copy", outfile]
     run(args)
 
-    os.remove('_acsuite_temp_concat.txt')
+    os.remove("_acsuite_temp_concat.txt")
     for file in temp_filelist:
         os.remove(file)
 
@@ -267,7 +275,7 @@ def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[str] = None,
         s = t / 10 ** 9
     else:
         if timecodes_file is not None:
-            timecodes = [float(x)/1000 for x in open(timecodes_file, 'r').read().splitlines()[1:]]
+            timecodes = [float(x) / 1000 for x in open(timecodes_file, "r").read().splitlines()[1:]]
             s = timecodes[f]
         else:
             s = clip_to_timecodes(src_clip)[f]
@@ -278,13 +286,13 @@ def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[str] = None,
     m %= 60
 
     if precision == 0:
-        return f'{h:02.0f}:{m:02.0f}:{round(s):02}'
+        return f"{h:02.0f}:{m:02.0f}:{round(s):02}"
     elif precision == 3:
-        return f'{h:02.0f}:{m:02.0f}:{s:06.3f}'
+        return f"{h:02.0f}:{m:02.0f}:{s:06.3f}"
     elif precision == 6:
-        return f'{h:02.0f}:{m:02.0f}:{s:09.6f}'
+        return f"{h:02.0f}:{m:02.0f}:{s:09.6f}"
     elif precision == 9:
-        return f'{h:02.0f}:{m:02.0f}:{s:012.9f}'
+        return f"{h:02.0f}:{m:02.0f}:{s:012.9f}"
 
 
 @functools.lru_cache
@@ -300,17 +308,19 @@ def clip_to_timecodes(src_clip: vs.VideoNode) -> Deque[float]:
 
     If you have ``rich`` installed, will output a pretty progress bar as this process can take a long time.
     """
+    # fmt: off
     try:
         from rich.progress import track
         rich = True
     except ImportError:
         track = lambda x, description, total: x
         rich = False
+    # fmt: on
     timecodes = collections.deque([0.0], maxlen=src_clip.num_frames + 1)
     curr_time = fractions.Fraction()
     init_percentage = 0
-    for frame in track(src_clip.frames(), description='Finding timestamps...', total=src_clip.num_frames):
-        curr_time += fractions.Fraction(frame.props['_DurationNum'], frame.props['_DurationDen'])
+    for frame in track(src_clip.frames(), description="Finding timestamps...", total=src_clip.num_frames):
+        curr_time += fractions.Fraction(frame.props["_DurationNum"], frame.props["_DurationDen"])
         timecodes.append(float(curr_time))
         if rich:
             pass  # if ran in a normal console/terminal, should render a pretty progress bar
@@ -328,7 +338,7 @@ _Neg2pos_out = Union[Tuple[List[int], List[int]], Tuple[int, int]]
 
 def _negative_to_positive(num_frames: int, a: _Neg2pos_in, b: _Neg2pos_in) -> _Neg2pos_out:
     """Changes negative/zero index to positive based on num_frames."""
-    single_trim = (isinstance(a, (int, type(None))) and isinstance(b, (int, type(None))))
+    single_trim = isinstance(a, (int, type(None))) and isinstance(b, (int, type(None)))
 
     # --- single trim --------------------------------------------------------------------------------------------------
     if single_trim:
@@ -360,7 +370,7 @@ def _check_ordered(starts: List[int], ends: List[int]) -> bool:
     if not all(starts[i] < ends[i] for i in range(len(starts))):
         return False
     if not all(ends[i] < starts[i + 1] for i in range(len(starts) - 1)):
-        warn('_check_ordered: one or more trims will cause overlapping', Warning)
+        warn("_check_ordered: one or more trims will cause overlapping", Warning)
     return True
 
 
@@ -377,13 +387,13 @@ def concat(audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] =
     """
     # --- checking for ffmpeg ------------------------------------------------------------------------------------------
     if ffmpeg_path is None:
-        ffmpeg_path = which('ffmpeg')
+        ffmpeg_path = which("ffmpeg")
     else:
         if not os.path.isfile(ffmpeg_path):
             raise FileNotFoundError(f"concat: ffmpeg executable at {ffmpeg_path} not found")
         try:
-            args = ['ffmpeg', '-version']
-            if subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout.split()[0] != 'ffmpeg':
+            args = ["ffmpeg", "-version"]
+            if subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout.split()[0] != "ffmpeg":
                 raise ValueError("concat: ffmpeg executable not working properly")
         except FileNotFoundError:
             raise FileNotFoundError("concat: ffmpeg executable not found in PATH") from None
@@ -403,16 +413,16 @@ def concat(audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] =
         raise FileExistsError(f"eztrim: {outfile} already exists")
     # ------------------------------------------------------------------------------------------------------------------
 
-    ffmpeg_silence = [ffmpeg_path, '-hide_banner', '-loglevel', '16'] if quiet else [ffmpeg_path, '-hide_banner']
+    ffmpeg_silence = [ffmpeg_path, "-hide_banner", "-loglevel", "16"] if quiet else [ffmpeg_path, "-hide_banner"]
 
-    if os.path.isfile('_acsuite_temp_concat.txt'):
+    if os.path.isfile("_acsuite_temp_concat.txt"):
         raise ValueError("concat: _acsuite_temp_concat.txt already exists, quitting")
-    concat_file = open('_acsuite_temp_concat.txt', 'w')
+    concat_file = open("_acsuite_temp_concat.txt", "w")
     for af in audio_files:
         concat_file.write(f"file {af}\n")
 
     concat_file.close()
-    args = ffmpeg_silence + ['-f', 'concat', '-i', '_acsuite_temp_concat.txt', '-c', 'copy', outfile]
+    args = ffmpeg_silence + ["-f", "concat", "-i", "_acsuite_temp_concat.txt", "-c", "copy", outfile]
     run(args)
 
-    os.remove('_acsuite_temp_concat.txt')
+    os.remove("_acsuite_temp_concat.txt")
