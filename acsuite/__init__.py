@@ -9,7 +9,6 @@ import collections
 import fractions
 import functools
 import os
-import pathlib
 import subprocess
 from shutil import which
 from subprocess import run
@@ -20,19 +19,18 @@ import vapoursynth as vs
 
 simplefilter('always')  # display warnings
 
-Path = Union[bytes, os.PathLike, pathlib.Path, str]
 Trim = Tuple[Optional[int], Optional[int]]
 
 
 def eztrim(clip: vs.VideoNode,
            /,
            trims: Union[List[Trim], Trim],
-           audio_file: Path,
-           outfile: Optional[Path] = None,
+           audio_file: str,
+           outfile: Optional[str] = None,
            *,
-           ffmpeg_path: Optional[Path] = None,
+           ffmpeg_path: Optional[str] = None,
            quiet: bool = False,
-           timecodes_file: Optional[Path] = None,
+           timecodes_file: Optional[str] = None,
            debug: bool = False
            ) -> Union[Dict, str, None]:
     """
@@ -95,7 +93,6 @@ def eztrim(clip: vs.VideoNode,
         # --- checking for filename issues and file extension support --------------------------------------------------
         if not os.path.isfile(audio_file):
             raise FileNotFoundError(f"eztrim: {audio_file} not found")
-
         audio_file_name, audio_file_ext = os.path.splitext(audio_file)
         # fmt: off
         ffmpeg_valid_encoder_extensions = {
@@ -182,7 +179,7 @@ def eztrim(clip: vs.VideoNode,
 
     num_frames = clip.num_frames
     ts = functools.partial(f2ts, timecodes_file=timecodes_file, src_clip=clip)
-    ffmpeg_silence = [str(ffmpeg_path), '-hide_banner', '-loglevel', '16'] if quiet else [str(ffmpeg_path), '-hide_banner']
+    ffmpeg_silence = [ffmpeg_path, '-hide_banner', '-loglevel', '16'] if quiet else [ffmpeg_path, '-hide_banner']
 
     # --- single trim --------------------------------------------------------------------------------------------------
     if isinstance(trims, tuple):
@@ -195,7 +192,7 @@ def eztrim(clip: vs.VideoNode,
         if debug:
             return debug_dict
         run(args)
-        return str(outfile)
+        return outfile
 
     # --- multiple trims with concatenation ----------------------------------------------------------------------------
     starts, ends = _negative_to_positive(num_frames, [s for s, e in trims], [e for s, e in trims])
@@ -231,10 +228,10 @@ def eztrim(clip: vs.VideoNode,
     for file in temp_filelist:
         os.remove(file)
 
-    return str(outfile)
+    return outfile
 
 
-def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[Path] = None, src_clip: vs.VideoNode) -> str:
+def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[str] = None, src_clip: vs.VideoNode) -> str:
     """
     Converts frame number to a timestamp based on framerate.
 
