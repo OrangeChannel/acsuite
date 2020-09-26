@@ -162,6 +162,9 @@ def eztrim(clip: vs.VideoNode,
                 raise ValueError("eztrim: a single tuple trim must have 2 elements")
             if trims[-1] == 0:
                 raise ValueError("eztrim: slices cannot end with 0, if attempting to use an empty slice, use `None`")
+            if trims == (None, None):
+                warn("eztrim: None, None slice will cause no trimming, quitting early")
+                return outfile
         else:
             raise ValueError("eztrim: the inner trim must be a tuple")
     elif isinstance(trims, list):
