@@ -9,6 +9,8 @@ acsuite documentation
 
 .. autofunction:: eztrim
 
+.. autofunction:: concat
+
 .. autofunction:: f2ts
 
 .. code-block:: python

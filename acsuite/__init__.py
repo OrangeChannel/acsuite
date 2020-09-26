@@ -364,14 +364,16 @@ def _check_ordered(starts: List[int], ends: List[int]) -> bool:
     return True
 
 
-def concat(audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] = None, quiet: bool = False) -> str:
-    """
-    _
-    :param audio_files:
-    :param outfile:
-    :param ffmpeg_path:
-    :param quiet:
-    :return:
+def concat(audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] = None, quiet: bool = False) -> None:
+    """Function to concatenate mutliple audio files.
+
+    All audio files must have the same extension, and the outfile must have the same extension as the audio files.
+
+    :param audio_files: List of strings representing audio file paths (i.e. ``['file1.wav', 'file2.wav']``).
+    :param outfile: String representing desired filename for the concatenated audio.
+    :param ffmpeg_path: Set this if ``ffmpeg`` is not in your `PATH`.
+                        If ``ffmpeg`` exists in your `PATH`, it will automatically be detected and used.
+    :param quiet: Suppresses most console output from FFmpeg.
     """
     # --- checking for ffmpeg ------------------------------------------------------------------------------------------
     if ffmpeg_path is None:
@@ -414,6 +416,3 @@ def concat(audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] =
     run(args)
 
     os.remove('_acsuite_temp_concat.txt')
-
-    return outfile
-
