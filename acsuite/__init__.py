@@ -82,7 +82,7 @@ def eztrim(clip: vs.VideoNode,
         Single frame slices must be represented as a normal slice.
             ``src[15]`` must be entered as ``trims=(15, 16)``.
 
-    :param audio_file:    A string or path-like object refering to the source audio file's location
+    :param audio_file:    A string to the source audio file's location
                           (i.e. '/path/to/audio_file.ext').
                           If the extension is not recognized as a valid audio file extension for FFmpeg's encoders,
                           the audio will be re-encoded to WAV losslessly.
