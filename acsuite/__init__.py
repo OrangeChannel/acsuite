@@ -406,18 +406,14 @@ def concat(audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] =
     if os.path.isfile('_acsuite_temp_concat.txt'):
         raise ValueError("concat: _acsuite_temp_concat.txt already exists, quitting")
     concat_file = open('_acsuite_temp_concat.txt', 'w')
-    temp_filelist = []
     for af in audio_files:
         concat_file.write(f"file {af}\n")
-        temp_filelist.append(af)
 
     concat_file.close()
     args = ffmpeg_silence + ['-f', 'concat', '-i', '_acsuite_temp_concat.txt', '-c', 'copy', outfile]
     run(args)
 
     os.remove('_acsuite_temp_concat.txt')
-    for file in temp_filelist:
-        os.remove(file)
 
     return outfile
 
