@@ -79,8 +79,6 @@ def eztrim(clip: vs.VideoNode,
         Empty slicing must represented with a ``None``.
             ``src[:10]+src[-5:]`` must be entered as ``trims=[(None, 10), (-5, None)]``.
 
-        For legacy reasons, ``0`` can be used in place of ``None`` but is not recommended.
-
         Single frame slices must be represented as a normal slice.
             ``src[15]`` must be entered as ``trims=(15, 16)``.
 
@@ -160,6 +158,10 @@ def eztrim(clip: vs.VideoNode,
              "for a single trim, directly use a tuple: `trims=(5,-2)` instead of `trims=[(5,-2)]`", SyntaxWarning)
         if isinstance(trims[0], tuple):
             trims = trims[0]  # convert nested tuple in a list to just the tuple
+            if len(trims) != 2:
+                raise ValueError("eztrim: a single tuple trim must have 2 elements")
+            if trims[-1] == 0:
+                raise ValueError("eztrim: slices cannot end with 0, if attempting to use an empty slice, use `None`")
         else:
             raise ValueError("eztrim: the inner trim must be a tuple")
     elif isinstance(trims, list):
@@ -171,10 +173,9 @@ def eztrim(clip: vs.VideoNode,
             for i in trim:
                 if not isinstance(i, (int, type(None))):
                     raise ValueError(f"eztrim: the trim {trim} must have 2 ints or None's")
+            if trim[-1] == 0:
+                raise ValueError("eztrim: slices cannot end with 0, if attempting to use an empty slice, use `None`")
 
-    if isinstance(trims, tuple):
-        if len(trims) != 2:
-            raise ValueError("eztrim: a single tuple trim must have 2 elements")
     # ------------------------------------------------------------------------------------------------------------------
 
     num_frames = clip.num_frames
