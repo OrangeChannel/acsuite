@@ -225,18 +225,8 @@ def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[Path] = None
     Converts frame number to a timestamp based on framerate.
 
     Can handle variable-frame-rate clips as well, using similar methods to that of ``vspipe --timecodes``.
-    For VFR clips, will use a timecodes v2 file if given, else will fallback to the slower frames() method.
+    For VFR clips, will use a timecodes v2 file if given, else will fallback to the slower ``src_clip.frames()`` method.
     Meant to be called as a ``functools.partial`` with `src_clip` specified before-hand.
-
-    >>> from functools import partial
-    >>> import vapoursynth as vs
-    >>> core = vs.core
-    >>>
-    >>> clip = core.std.BlankClip()
-    >>> ts = partial(f2ts, src_clip=clip)
-    >>>
-    >>> ts(5), ts(9), ts(clip.num_frames), ts(-1)
-    ('00:00:00.208', '00:00:00.375', '00:00:10.000', '00:00:09.958')
 
     :param f: Frame number (indexed from ``0``). Can be negative, indexing from the last frame of the `src_clip`.
     :param precision: An integer in ``[0, 3, 6, 9]`` representing the precision of the timestamp
