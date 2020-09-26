@@ -21,6 +21,26 @@ simplefilter('always')  # display warnings
 
 Trim = Tuple[Optional[int], Optional[int]]
 
+# fmt: off
+VALID_FFMPEG_EXTENSIONS = [
+    '.aac', '.m4a', '.adts',
+    '.ac3',
+    '.alac', '.caf',
+    '.dca', '.dts',
+    '.eac3',
+    '.flac',
+    '.gsm',
+    '.mlp',
+    '.mp2', '.mp3', '.mpga',
+    '.opus', '.spx', '.ogg', '.oga',
+    '.pcm', '.raw',
+    '.sbc',
+    '.thd',
+    '.tta',
+    '.wav', '.w64',
+    '.wma',
+]
+# fmt: on
 
 def eztrim(clip: vs.VideoNode,
            /,
@@ -94,29 +114,9 @@ def eztrim(clip: vs.VideoNode,
         if not os.path.isfile(audio_file):
             raise FileNotFoundError(f"eztrim: {audio_file} not found")
         audio_file_name, audio_file_ext = os.path.splitext(audio_file)
-        # fmt: off
-        ffmpeg_valid_encoder_extensions = {
-            '.aac', '.m4a', '.adts',
-            '.ac3',
-            '.alac', '.caf',
-            '.dca', '.dts',
-            '.eac3',
-            '.flac',
-            '.gsm',
-            '.mlp',
-            '.mp2', '.mp3', '.mpga',
-            '.opus', '.spx', '.ogg', '.oga',
-            '.pcm', '.raw',
-            '.sbc',
-            '.thd',
-            '.tta',
-            '.wav', '.w64',
-            '.wma',
-        }
-        # fmt: on
         codec_args = []
 
-        if audio_file_ext in ffmpeg_valid_encoder_extensions:
+        if audio_file_ext in VALID_FFMPEG_EXTENSIONS:
             codec_args += ['-c:a', 'copy', '-rf64', 'auto']
         else:
             warn(f"eztrim: {audio_file_ext} is not a supported extension by FFmpeg's audio encoders, re-encoding to WAV", Warning)
