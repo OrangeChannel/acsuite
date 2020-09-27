@@ -193,7 +193,7 @@ def eztrim(
     if isinstance(trims, tuple):
         start, end = _negative_to_positive(num_frames, *trims)
         if end <= start:
-            raise ValueError(f"eztrim: the trim {trims} is not logical")
+            raise ValueError("eztrim: the trim is not logical")
         debug_dict = {"s": start, "e": end}
         args = ffmpeg_silence + ["-i", audio_file, "-vn", "-ss", ts(start), "-to", ts(end)] + codec_args + [outfile]
         debug_dict.update({"args": args})
