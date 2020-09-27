@@ -9,7 +9,6 @@ import collections
 import fractions
 import functools
 import os
-import subprocess
 from shutil import which
 from subprocess import run
 from typing import Deque, Dict, List, Optional, Tuple, Union
@@ -138,16 +137,13 @@ def eztrim(
 
         # --- checking for ffmpeg --------------------------------------------------------------------------------------
         if ffmpeg_path is None:
-            ffmpeg_path = which("ffmpeg")
+            if not which("ffmpeg"):
+                raise FileNotFoundError("concat: ffmpeg executable not found in PATH")
+            else:
+                ffmpeg_path = which("ffmpeg")
         else:
             if not os.path.isfile(ffmpeg_path):
-                raise FileNotFoundError(f"eztrim: ffmpeg executable at {ffmpeg_path} not found")
-            try:
-                args = ["ffmpeg", "-version"]
-                if subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout.split()[0] != "ffmpeg":
-                    raise ValueError("eztrim: ffmpeg executable not working properly")
-            except FileNotFoundError:
-                raise FileNotFoundError("eztrim: ffmpeg executable not found in PATH") from None
+                raise FileNotFoundError(f"concat: ffmpeg executable at {ffmpeg_path} not found")
 
         # --- timecodes ------------------------------------------------------------------------------------------------
 
@@ -387,16 +383,13 @@ def concat(audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] =
     """
     # --- checking for ffmpeg ------------------------------------------------------------------------------------------
     if ffmpeg_path is None:
-        ffmpeg_path = which("ffmpeg")
+        if not which("ffmpeg"):
+            raise FileNotFoundError("concat: ffmpeg executable not found in PATH")
+        else:
+            ffmpeg_path = which("ffmpeg")
     else:
         if not os.path.isfile(ffmpeg_path):
             raise FileNotFoundError(f"concat: ffmpeg executable at {ffmpeg_path} not found")
-        try:
-            args = ["ffmpeg", "-version"]
-            if subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout.split()[0] != "ffmpeg":
-                raise ValueError("concat: ffmpeg executable not working properly")
-        except FileNotFoundError:
-            raise FileNotFoundError("concat: ffmpeg executable not found in PATH") from None
 
     # --- checking for filename issues and file extension support ------------------------------------------------------
     if len(audio_files) < 2:
