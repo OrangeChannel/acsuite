@@ -53,7 +53,7 @@ def eztrim(
     quiet: bool = False,
     timecodes_file: Optional[str] = None,
     debug: bool = False,
-) -> Union[Dict, str, None]:
+) -> Union[Dict, str]:
     """
     Simple trimming function that follows VapourSynth/Python slicing syntax.
 
