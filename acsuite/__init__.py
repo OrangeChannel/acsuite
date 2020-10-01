@@ -158,15 +158,21 @@ def eztrim(
         )
         if isinstance(trims[0], tuple):
             trims = trims[0]  # convert nested tuple in a list to just the tuple
-            if len(trims) != 2:
-                raise ValueError("eztrim: a single tuple trim must have 2 elements")
-            if trims[-1] == 0:
-                raise ValueError("eztrim: slices cannot end with 0, if attempting to use an empty slice, use `None`")
-            if trims == (None, None):
-                warn("eztrim: None, None slice will cause no trimming, quitting early")
-                return outfile
         else:
-            raise ValueError("eztrim: the inner trim must be a tuple")
+            raise TypeError("eztrim: the inner trim must be a tuple")
+    if isinstance(trims, tuple):
+        if len(trims) != 2:
+            raise ValueError("eztrim: a single tuple trim must have 2 elements")
+        if not all(isinstance(i, (int, type(None))) for i in trims):
+            raise TypeError("eztrim: the trim must contain only 2 ints or Nones")
+        if trims[-1] == 0:
+            raise ValueError("eztrim: slices cannot end with 0, if attempting to use an empty slice, use `None`")
+        if trims == (None, None):
+            warn("eztrim: None, None slice will cause no trimming, quitting early", Warning)
+            if debug:
+                return locals()
+            else:
+                return outfile
     elif isinstance(trims, list):
         for trim in trims:
             if not isinstance(trim, tuple):
@@ -175,7 +181,7 @@ def eztrim(
                 raise ValueError(f"eztrim: the trim {trim} needs 2 elements")
             for i in trim:
                 if not isinstance(i, (int, type(None))):
-                    raise ValueError(f"eztrim: the trim {trim} must have 2 ints or None's")
+                    raise TypeError(f"eztrim: the trim {trim} must have 2 ints or None's")
             if trim[-1] == 0:
                 raise ValueError("eztrim: slices cannot end with 0, if attempting to use an empty slice, use `None`")
 
