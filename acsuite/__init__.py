@@ -196,13 +196,12 @@ def eztrim(
         start, end = _negative_to_positive(num_frames, *trims)
         if end <= start:
             raise ValueError("eztrim: the trim is not logical")
-        debug_dict = {"s": start, "e": end}
         args = ffmpeg_silence + ["-i", audio_file, "-vn", "-ss", ts(start), "-to", ts(end)] + codec_args + [outfile]
-        debug_dict.update({"args": args})
         if debug:
-            return debug_dict
-        run(args)
-        return outfile
+            return locals()
+        else:
+            run(args)
+            return outfile
 
     # --- multiple trims with concatenation ----------------------------------------------------------------------------
     starts, ends = _negative_to_positive(num_frames, [s for s, e in trims], [e for s, e in trims])
@@ -210,30 +209,35 @@ def eztrim(
         raise ValueError("eztrim: the trims are not logical")
 
     if os.path.isfile("_acsuite_temp_concat.txt"):
-        raise ValueError("eztrim: _acsuite_temp_concat.txt already exists, quitting")
+        raise FileExistsError("eztrim: _acsuite_temp_concat.txt already exists, quitting")
     else:
-        concat_file = open("_acsuite_temp_concat.txt", "w")
         temp_filelist = []
+        if not debug:
+            concat_file = open("_acsuite_temp_concat.txt", "w")
+
     times = zip([ts(f) for f in starts], [ts(f) for f in ends])
     for key, time in enumerate(times):
         outfile_tmp = f"_acsuite_temp_output_{key}" + os.path.splitext(outfile)[-1]
-        concat_file.write(f"file {outfile_tmp}\n")
+        if not debug:
+            concat_file.write(f"file {outfile_tmp}\n")
         temp_filelist.append(outfile_tmp)
         args = ffmpeg_silence + ["-i", audio_file, "-vn", "-ss", time[0], "-to", time[1]] + codec_args + [outfile_tmp]
-        debug_dict.update({f"args_{key}": args})
-        if debug:
-            return debug_dict
+        if not debug:
+            run(args)
+
+    if not debug:
+        concat_file.close()
+    args = ffmpeg_silence + ["-f", "concat", "-i", "_acsuite_temp_concat.txt", "-c", "copy", outfile]
+    if debug:
+        return locals()
+    else:
         run(args)
 
-    concat_file.close()
-    args = ffmpeg_silence + ["-f", "concat", "-i", "_acsuite_temp_concat.txt", "-c", "copy", outfile]
-    run(args)
+        os.remove("_acsuite_temp_concat.txt")
+        for file in temp_filelist:
+            os.remove(file)
 
-    os.remove("_acsuite_temp_concat.txt")
-    for file in temp_filelist:
-        os.remove(file)
-
-    return outfile
+        return outfile
 
 
 def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[str] = None, src_clip: vs.VideoNode) -> str:
@@ -367,7 +371,9 @@ def _check_ordered(starts: List[int], ends: List[int]) -> bool:
     return True
 
 
-def concat(audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] = None, quiet: bool = False) -> None:
+def concat(
+    audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] = None, quiet: bool = False, debug: bool = False
+) -> Optional[Dict]:
     """Function to concatenate mutliple audio files.
 
     All audio files must have the same extension, and the outfile must have the same extension as the audio files.
@@ -407,12 +413,15 @@ def concat(audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] =
 
     if os.path.isfile("_acsuite_temp_concat.txt"):
         raise ValueError("concat: _acsuite_temp_concat.txt already exists, quitting")
-    concat_file = open("_acsuite_temp_concat.txt", "w")
-    for af in audio_files:
-        concat_file.write(f"file {af}\n")
+    if not debug:
+        concat_file = open("_acsuite_temp_concat.txt", "w")
+        for af in audio_files:
+            concat_file.write(f"file {af}\n")
 
-    concat_file.close()
+        concat_file.close()
     args = ffmpeg_silence + ["-f", "concat", "-i", "_acsuite_temp_concat.txt", "-c", "copy", outfile]
+    if debug:
+        return locals()
     run(args)
 
     os.remove("_acsuite_temp_concat.txt")
