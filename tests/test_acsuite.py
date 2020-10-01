@@ -1,101 +1,190 @@
+import os
+import shutil
 import unittest
 from fractions import Fraction
 
 import vapoursynth as vs
 
+core = vs.core
+
 import acsuite
 
 
 class ACsuiteTests(unittest.TestCase):
-    BLANK_CLIP = vs.core.std.BlankClip(format=vs.YUV420P8, length=100, fpsnum=5, fpsden=1)
-    VFR_CLIP = vs.core.std.BlankClip(fpsnum=24000, fpsden=1001, length=5000) + vs.core.std.BlankClip(fpsnum=30000, fpsden=1001, length=5000)
+    BLANK_CLIP = core.std.BlankClip(format=vs.YUV420P8, length=100, fpsnum=5, fpsden=1)
+    VFR_CLIP = core.std.BlankClip(fpsnum=24000, fpsden=1001, length=24000) + core.std.BlankClip(
+        fpsnum=30000, fpsden=1001, length=30000
+    )
 
     def test_default_clip(self):
         self.assertEqual(self.BLANK_CLIP.num_frames, 100)
         self.assertEqual(self.BLANK_CLIP.fps, Fraction(5, 1))
-        self.assertEqual(acsuite.f2ts(self.BLANK_CLIP.num_frames, src_clip=self.BLANK_CLIP), '00:00:20.000')
+        self.assertEqual(acsuite.f2ts(self.BLANK_CLIP.num_frames, src_clip=self.BLANK_CLIP), "00:00:20.000")
 
-    def test_eztrim(self):
-        with self.assertRaisesRegex(TypeError, 'trims must be a list of 2-tuples'):
-            acsuite.eztrim(self.BLANK_CLIP, trims='str', audio_file='', outfile='', debug=True)
-
-        with self.assertRaisesRegex(ValueError, 'must have 2 elements'):
-            acsuite.eztrim(self.BLANK_CLIP, trims=(1, 2, 3), audio_file='', outfile='', debug=True)
-
-        with self.assertRaisesRegex(TypeError, 'is not a tuple'):
-            acsuite.eztrim(self.BLANK_CLIP, trims=[(1, 2), 'str'], audio_file='', outfile='', debug=True)
-
-        with self.assertRaisesRegex(ValueError, 'needs 2 elements'):
-            acsuite.eztrim(self.BLANK_CLIP, trims=[(1, 2), (3, 4, 5)], audio_file='', outfile='', debug=True)
-
-        with self.assertRaisesRegex(ValueError, '2 ints'):
-            acsuite.eztrim(self.BLANK_CLIP, trims=[(1, 2), (3, 'str')], audio_file='', outfile='', debug=True)
-
-        with self.assertRaisesRegex(ValueError, 'is not logical'):
-            acsuite.eztrim(self.BLANK_CLIP, trims=(-95, -99), audio_file='', outfile='', debug=True)
-
-        with self.assertRaisesRegex(ValueError, 'is not logical'):
-            acsuite.eztrim(self.BLANK_CLIP, trims=(1, 1), audio_file='', outfile='', debug=True)
-
-        with self.assertRaisesRegex(ValueError, 'are not logical'):
-            acsuite.eztrim(self.BLANK_CLIP, trims=[(1, 10), (2, -95)], audio_file='', outfile='', debug=True)
-
-        with self.assertWarns(SyntaxWarning):
-            acsuite.eztrim(self.BLANK_CLIP, trims=[(5, 10)], audio_file='', outfile='', debug=True)
-
-        self.assertEqual(
-            acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
-                           outfile='', debug=True)['s'], [3, 23, 48, 50, 90, 97])
-
-        self.assertEqual(
-            acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
-                           outfile='', debug=True)['e'], [22, 40, 49, 80, 95, 100])
-
-        self.assertEqual(
-            acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
-                           outfile='', debug=True)['cut_ts_s'],
-            ['00:00:00.600', '00:00:04.600', '00:00:09.600', '00:00:10.000',
-             '00:00:18.000', '00:00:19.400'])
-
-        self.assertEqual(
-            acsuite.eztrim(self.BLANK_CLIP, [(3, 22), (23, 40), (48, 49), (50, -20), (-10, -5), (97, 0)], audio_file='',
-                           outfile='', debug=True)['cut_ts_e'],
-            ['00:00:04.400', '00:00:08.000', '00:00:09.800', '00:00:16.000',
-             '00:00:19.000', '00:00:20.000'])
-
-        self.assertEqual(acsuite.eztrim(self.BLANK_CLIP, (3, -13), audio_file='', outfile='', debug=True),
-                         {'s': 3, 'e': 87, 'cut_ts_s': ['00:00:00.600'], 'cut_ts_e': ['00:00:17.400']})
+    def test_vfr_clip(self):
+        self.assertEqual(self.VFR_CLIP.num_frames, 54000)
+        self.assertEqual(self.VFR_CLIP.fps, Fraction())
+        self.assertEqual(acsuite.f2ts(self.VFR_CLIP.num_frames, src_clip=self.VFR_CLIP), "00:33:22.000")
 
     def test_check_ordered(self):
-        self.assertFalse(acsuite._check_ordered([0, 5, 8], [1, 9, 10]))
+        with self.assertWarnsRegex(Warning, "overlapping"):
+            acsuite._check_ordered([0, 5, 8], [1, 9, 10])
         self.assertFalse(acsuite._check_ordered([0, 2, 4], [0, 3, 5]))
-
         self.assertTrue(acsuite._check_ordered([0, 2, 4], [1, 3, 5]))
 
-    def test_f2ts(self):
-        self.assertEqual(acsuite.f2ts(0, src_clip=self.BLANK_CLIP), '00:00:00.000')
-        self.assertEqual(acsuite.f2ts(69, src_clip=self.BLANK_CLIP), '00:00:13.800')
-        self.assertEqual(acsuite.f2ts(4000, precision=9, src_clip=self.VFR_CLIP), '00:02:46.833333333')
-        self.assertEqual(acsuite.f2ts(6000, precision=9, src_clip=self.VFR_CLIP), '00:04:01.908333333')
-
-
     def test_negative_to_positive(self):
-        with self.assertRaisesRegex(ValueError, 'out of bounds'):
-            acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [0, 3, 101], [0, 1, 2])
-        with self.assertRaisesRegex(ValueError, 'out of bounds'):
-            acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [0, 3, 98], [0, 1, -102])
+        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, None, None), (0, 100))
+        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, -90, -20), (10, 80))
+        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, 20, 30), (20, 30))
+        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, 0, -10), (0, 90))
 
-        with self.assertRaisesRegex(ValueError, 'same length'):
-            acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [1, 2], [3, 4, 5])
+        with self.assertRaisesRegex(ValueError, "bounds"):
+            acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, None, 101)
 
-        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [1, 4, 5], [10, 75, 85]), ([1, 4, 5], [10, 75, 85]))
-        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [4, 0, 5], [10, 20, 1]), ([4, 0, 5], [10, 20, 1]))
-        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [4, 0, 5], [10, 0, 1]), ([4, 0, 5], [10, 100, 1]))
-        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [-10, 0, -5], [-10, 0, 5]),
-                         ([90, 0, 95], [90, 100, 5]))
-        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [0], [-12]), ([0], [88]))
-        self.assertEqual(acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [-12], [0]), ([88], [100]))
+        with self.assertRaisesRegex(ValueError, "length"):
+            acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [None, 10, 20], [None, -30])
+
+        with self.assertRaisesRegex(ValueError, "bounds"):
+            acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [None, 10, 20], [None, -30, 101])
+
+        self.assertEqual(
+            acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [0, 20, 30], [10, 30, 40]),
+            ([0, 20, 30], [10, 30, 40]),
+        )
+        self.assertEqual(
+            acsuite._negative_to_positive(self.BLANK_CLIP.num_frames, [0, 20, 30], [10, None, -30]),
+            ([0, 20, 30], [10, 100, 70]),
+        )
+
+    def test_f2ts_and_clip_to_timecodes(self):
+        with self.assertRaisesRegex(ValueError, "multiple of 3"):
+            acsuite.f2ts(0, src_clip=self.BLANK_CLIP, precision=1)
+
+        self.assertEqual(acsuite.f2ts(0, src_clip=self.BLANK_CLIP), "00:00:00.000")
+        self.assertEqual(acsuite.f2ts(0, src_clip=self.VFR_CLIP), "00:00:00.000")
+
+        self.assertEqual(acsuite.f2ts(69, src_clip=self.BLANK_CLIP, precision=0), "00:00:14")
+        self.assertEqual(acsuite.f2ts(69, src_clip=self.BLANK_CLIP), "00:00:13.800")
+        self.assertEqual(acsuite.f2ts(69, src_clip=self.BLANK_CLIP, precision=6), "00:00:13.800000")
+        self.assertEqual(acsuite.f2ts(69, src_clip=self.BLANK_CLIP, precision=9), "00:00:13.800000000")
+
+        self.assertEqual(acsuite.f2ts(10000, src_clip=self.VFR_CLIP), "00:06:57.083")
+        self.assertEqual(acsuite.f2ts(25000, src_clip=self.VFR_CLIP), "00:17:14.367")
+
+    def test_eztrim(self):
+        with self.assertRaisesRegex(FileNotFoundError, "not found"):
+            acsuite.eztrim(self.BLANK_CLIP, (None, None), "non_existent_file.wav")
+        with self.assertWarnsRegex(Warning, "supported"):
+            acsuite.eztrim(self.BLANK_CLIP, (None, None), "test_unknown_audio.zzz")
+
+        with self.assertWarnsRegex(Warning, "correct"):
+            acsuite.eztrim(self.BLANK_CLIP, (None, None), "test_wav_audio.wav", "outfile.xyz")
+        with self.assertRaisesRegex(FileExistsError, "already exists"):
+            acsuite.eztrim(self.BLANK_CLIP, (None, None), "test_wav_audio1.wav")
+
+        with self.assertRaisesRegex(FileNotFoundError, "ffmpeg"):
+            acsuite.eztrim(self.BLANK_CLIP, (None, None), "test_wav_audio.wav", ffmpeg_path="empty_path.exe")
+
+        with self.assertRaisesRegex(FileNotFoundError, "not found"):
+            acsuite.eztrim(self.BLANK_CLIP, (None, None), "test_wav_audio.wav", timecodes_file="empty_path.txt")
+
+        with self.assertRaisesRegex(TypeError, "trims must be"):
+            acsuite.eztrim(self.BLANK_CLIP, "str", "test_wav_audio.wav", "outfile.wav")
+        with self.assertWarnsRegex(SyntaxWarning, "directly"):
+            acsuite.eztrim(self.BLANK_CLIP, [(5, -2)], "test_wav_audio.wav", "outfile.wav")
+        with self.assertRaisesRegex(TypeError, "inner trim"):
+            acsuite.eztrim(self.BLANK_CLIP, ["str"], "test_wav_audio.wav", "outfile.wav")
+
+        with self.assertRaisesRegex(ValueError, "2 elements"):
+            acsuite.eztrim(self.BLANK_CLIP, (1, 2, 3), "test_wav_audio.wav", "outfile.wav")
+        with self.assertRaisesRegex(TypeError, "contain only"):
+            acsuite.eztrim(self.BLANK_CLIP, (1, "str"), "test_wav_audio.wav", "outfile.wav")
+        with self.assertRaisesRegex(ValueError, "end with 0"):
+            acsuite.eztrim(self.BLANK_CLIP, (1, 0), "test_wav_audio.wav", "outfile.wav")
+        with self.assertWarnsRegex(Warning, "quitting"):
+            acsuite.eztrim(self.BLANK_CLIP, (None, None), "test_wav_audio.wav", "outfile.wav")
+
+        with self.assertRaisesRegex(TypeError, "not a tuple"):
+            acsuite.eztrim(self.BLANK_CLIP, [(1, 2), "str"], "test_wav_audio.wav", "output.wav")
+        with self.assertRaisesRegex(ValueError, "2 elements"):
+            acsuite.eztrim(self.BLANK_CLIP, [(1, 2), (1, 2, 3)], "test_wav_audio.wav", "output.wav")
+        with self.assertRaisesRegex(TypeError, "2 ints"):
+            acsuite.eztrim(self.BLANK_CLIP, [(1, 2), (1, "str")], "test_wav_audio.wav", "output.wav")
+        with self.assertRaisesRegex(ValueError, "end with 0"):
+            acsuite.eztrim(self.BLANK_CLIP, [(1, 2), (1, 0)], "test_wav_audio.wav", "output.wav")
+
+        with self.assertRaisesRegex(ValueError, "not logical"):
+            acsuite.eztrim(self.BLANK_CLIP, (10, 10), "test_wav_audio.wav", "output.wav")
+
+        with self.assertRaisesRegex(ValueError, "not logical"):
+            acsuite.eztrim(self.BLANK_CLIP, [(None, 2), (10, 8)], "test_wav_audio.wav", "output.wav")
+
+        # --------------------------------------------------------------------------------------------------------------
+
+        temp_file = open("_acsuite_temp_concat.txt", "w")
+        temp_file.write("t")
+        temp_file.close()
+
+        with self.assertRaisesRegex(FileExistsError, "exists"):
+            acsuite.eztrim(self.BLANK_CLIP, [(None, -1), (None, -1)], "test_wav_audio.wav", "outfile.wav")
+
+        os.remove("_acsuite_temp_concat.txt")
+
+        # --------------------------------------------------------------------------------------------------------------
+
+        self.assertEqual(
+            acsuite.eztrim(self.BLANK_CLIP, (None, None), "test_wav_audio.wav", "outfile.wav"), "outfile.wav"
+        )
+
+        # --------------------------------------------------------------------------------------------------------------
+
+        none_none_test_locals = acsuite.eztrim(
+            self.BLANK_CLIP, (None, None), "test_wav_audio.wav", "outfile.xxx", debug=True
+        )
+
+        self.assertEqual(none_none_test_locals["trims"], (None, None))
+        self.assertEqual(none_none_test_locals["ffmpeg_path"], shutil.which("ffmpeg"))
+        self.assertEqual(none_none_test_locals["audio_file_name"], "test_wav_audio")
+        self.assertEqual(none_none_test_locals["audio_file_ext"], ".wav")
+        self.assertEqual(none_none_test_locals["codec_args"], ["-c:a", "copy", "-rf64", "auto"])
+
+        single_test_locals = acsuite.eztrim(
+            self.VFR_CLIP, (10000, -29000), "test_wav_audio.wav", "outfile.xxx", debug=True, quiet=True
+        )
+
+        self.assertEqual(single_test_locals["trims"], (10000, -29000))
+        self.assertEqual(single_test_locals["num_frames"], self.VFR_CLIP.num_frames)
+        self.assertEqual((single_test_locals["start"], single_test_locals["end"]), (10000, 25000))
+        single_test_args = (
+            [shutil.which("ffmpeg"), "-hide_banner", "-loglevel", "16"]
+            + ["-i", "test_wav_audio.wav", "-vn", "-ss", "00:06:57.083", "-to", "00:17:14.367"]
+            + ["-c:a", "copy", "-rf64", "auto"]
+            + ["outfile.wav"]
+        )
+
+        self.assertEqual(single_test_locals["args"], single_test_args)
+
+        double_test_locals = acsuite.eztrim(
+            self.VFR_CLIP, [(None, 10000), (10000, -29000)], "test_wav_audio.wav", "outfile.xxx", debug=True
+        )
+
+        self.assertEqual(double_test_locals["starts"], [0, 10000])
+        self.assertEqual(double_test_locals["ends"], [10000, 25000])
+        self.assertEqual(
+            double_test_locals["temp_filelist"], ["_acsuite_temp_output_0.wav", "_acsuite_temp_output_1.wav"]
+        )
+
+        double_test_args = [shutil.which("ffmpeg"), "-hide_banner"] + [
+            "-f",
+            "concat",
+            "-i",
+            "_acsuite_temp_concat.txt",
+            "-c",
+            "copy",
+            "outfile.wav",
+        ]
+        self.assertEqual(double_test_locals["args"], double_test_args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
