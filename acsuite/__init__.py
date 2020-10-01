@@ -207,17 +207,12 @@ def eztrim(
     if not _check_ordered(starts, ends):
         raise ValueError("eztrim: the trims are not logical")
 
-    cut_ts_s = [ts(f) for f in starts]
-    cut_ts_e = [ts(f) for f in ends]
-
-    debug_dict = {"s": starts, "e": ends, "cut_ts_s": cut_ts_s, "cut_ts_e": cut_ts_e}
-
-    times = [[s, e] for s, e in zip(cut_ts_s, cut_ts_e)]
     if os.path.isfile("_acsuite_temp_concat.txt"):
         raise ValueError("eztrim: _acsuite_temp_concat.txt already exists, quitting")
     else:
         concat_file = open("_acsuite_temp_concat.txt", "w")
         temp_filelist = []
+    times = zip([ts(f) for f in starts], [ts(f) for f in ends])
     for key, time in enumerate(times):
         outfile_tmp = f"_acsuite_temp_output_{key}" + os.path.splitext(outfile)[-1]
         concat_file.write(f"file {outfile_tmp}\n")
