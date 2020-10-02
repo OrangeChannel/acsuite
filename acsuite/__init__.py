@@ -412,7 +412,7 @@ def concat(
     ffmpeg_silence = [ffmpeg_path, "-hide_banner", "-loglevel", "16"] if quiet else [ffmpeg_path, "-hide_banner"]
 
     if os.path.isfile("_acsuite_temp_concat.txt"):
-        raise ValueError("concat: _acsuite_temp_concat.txt already exists, quitting")
+        raise FileExistsError("concat: _acsuite_temp_concat.txt already exists, quitting")
     if not debug:
         concat_file = open("_acsuite_temp_concat.txt", "w")
         for af in audio_files:
