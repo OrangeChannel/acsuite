@@ -185,6 +185,47 @@ class ACsuiteTests(unittest.TestCase):
         ]
         self.assertEqual(double_test_locals["args"], double_test_args)
 
+    def test_concat(self):
+        with self.assertRaisesRegex(ValueError, "2 or more"):
+            acsuite.concat(["test_wav_audio.wav"], "outfile.wav")
+        with self.assertRaisesRegex(ValueError, "same extension"):
+            acsuite.concat(["test_wav_audio.wav", "test_wav_audio.wav1"], "outfile.zzz")
+            acsuite.concat(["test_wav_audio.wav", "test_unknown_audio1.zzz"], "outfile.wav")
+        with self.assertRaisesRegex(ValueError, "valid extension"):
+            acsuite.concat(["test_unknown_audio.zzz", "test_unknown_audio1.zzz"], "outfile.zzz")
+        with self.assertRaises(FileNotFoundError):
+            acsuite.concat(["test_wav_audio.wav", "nonexistent_file.wav"], "outfile.wav")
+        with self.assertRaises(FileExistsError):
+            acsuite.concat(["test_wav_audio.wav", "test_wav_audio1.wav"], "test_wav_audio1_cut.wav")
+
+        # --------------------------------------------------------------------------------------------------------------
+
+        temp_file = open("_acsuite_temp_concat.txt", "w")
+        temp_file.write("t")
+        temp_file.close()
+
+        with self.assertRaisesRegex(FileExistsError, "concat"):
+            acsuite.concat(["test_wav_audio.wav", "test_wav_audio1.wav"], "outfile.wav")
+
+        os.remove("_acsuite_temp_concat.txt")
+
+        # --------------------------------------------------------------------------------------------------------------
+
+        args = [shutil.which("ffmpeg"), "-hide_banner"] + [
+            "-f",
+            "concat",
+            "-i",
+            "_acsuite_temp_concat.txt",
+            "-c",
+            "copy",
+            "outfile.wav",
+        ]
+
+        self.assertEqual(
+            acsuite.concat(["test_wav_audio.wav", "test_wav_audio1.wav"], "outfile.wav", debug=True)["args"],
+            args,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
