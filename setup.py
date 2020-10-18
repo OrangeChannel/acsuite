@@ -1,9 +1,11 @@
+import setuptools
 from distutils.util import convert_path
 
-import setuptools
 
-meta = {}
-exec(open(convert_path('acsuite/_metadata.py')).read(), meta)
+__author__, __version__ = str(), str()
+exec(open(convert_path('acsuite/_metadata.py')).read())
+if not __author__ and not __version__:
+    raise ValueError('setup: package missing metadata')
 
 with open('README.md') as fh:
     long_description = fh.read()
@@ -14,13 +16,13 @@ with open('requirements.txt') as fh:
 
 setuptools.setup(
     name='acsuite-orangechannel',
-    version=meta['__version__'],
+    version=__version__,
     description='Frame-based cutting/trimming/splicing of audio with VapourSynth and FFmpeg.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/OrangeChannel/acsuite',
-    author=meta['__author__'].split()[0],
-    author_email=meta['__author__'].split()[1][1:-1],
+    author=__author__.split()[0],
+    author_email=__author__.split()[1][1:-1],
     license='UNLICENSE',
     install_requires=install_requires,
     extras_require={
