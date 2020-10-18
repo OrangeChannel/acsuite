@@ -134,12 +134,12 @@ def eztrim(
     # --- checking for ffmpeg ------------------------------------------------------------------------------------------
     if ffmpeg_path is None:
         if not which("ffmpeg"):
-            raise FileNotFoundError("concat: ffmpeg executable not found in PATH")
+            raise FileNotFoundError("eztrim: ffmpeg executable not found in PATH")
         else:
             ffmpeg_path = which("ffmpeg")
     else:
         if not os.path.isfile(ffmpeg_path):
-            raise FileNotFoundError(f"concat: ffmpeg executable at {ffmpeg_path} not found")
+            raise FileNotFoundError(f"eztrim: ffmpeg executable at {ffmpeg_path} not found")
 
     # --- timecodes ----------------------------------------------------------------------------------------------------
 
@@ -406,7 +406,7 @@ def concat(
         if not os.path.isfile(af):
             raise FileNotFoundError(f"concat: {af} not found")
     if os.path.isfile(outfile):
-        raise FileExistsError(f"eztrim: {outfile} already exists")
+        raise FileExistsError(f"concat: {outfile} already exists")
     # ------------------------------------------------------------------------------------------------------------------
 
     ffmpeg_silence = [ffmpeg_path, "-hide_banner", "-loglevel", "16"] if quiet else [ffmpeg_path, "-hide_banner"]
