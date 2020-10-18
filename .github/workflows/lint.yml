@@ -1,0 +1,28 @@
+name: lint
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install VapourSynth
+        uses: Irrational-Encoding-Wizardry/install-vapoursynth-action@v0.1
+        with:
+          version: 49
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install mypy
+          pip install rich
+          pip install -r requirements.txt
+          pip install .
+      - name: Running mypy
+        run: mypy -p acsuite
+      - name: Running black
+        uses: psf/black@stable

@@ -1,9 +1,9 @@
 """Frame-based cutting/trimming/splicing of audio with VapourSynth and FFmpeg."""
 __all__ = ["clip_to_timecodes", "concat", "eztrim", "f2ts"]
 try:
-    from ._metadata import __author__, __credits__, __date__, __version__
+    from ._metadata import __author__, __credits__, __date__, __version__  # type: ignore
 except ImportError:
-    __author__ = __credits__ = __date__ = __version__ = "unknown (portable mode)"
+    __author__ = __credits__ = __date__ = __version__ = "unknown (portable mode)"  # type: ignore
 
 import collections
 import fractions
@@ -11,7 +11,7 @@ import functools
 import os
 from shutil import which
 from subprocess import run
-from typing import Deque, Dict, List, Optional, Tuple, Union
+from typing import cast, Deque, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 from warnings import simplefilter, warn
 
 import vapoursynth as vs
@@ -141,6 +141,9 @@ def eztrim(
         if not os.path.isfile(ffmpeg_path):
             raise FileNotFoundError(f"eztrim: ffmpeg executable at {ffmpeg_path} not found")
 
+    if TYPE_CHECKING:
+        assert isinstance(ffmpeg_path, str)
+
     # --- timecodes ----------------------------------------------------------------------------------------------------
 
     if (timecodes_file is not None) and (not os.path.isfile(timecodes_file)):
@@ -194,6 +197,9 @@ def eztrim(
     # --- single trim --------------------------------------------------------------------------------------------------
     if isinstance(trims, tuple):
         start, end = _negative_to_positive(num_frames, *trims)
+        if TYPE_CHECKING:
+            assert isinstance(start, int)
+            assert isinstance(end, int)
         if end <= start:
             raise ValueError("eztrim: the trim is not logical")
         args = ffmpeg_silence + ["-i", audio_file, "-vn", "-ss", ts(start), "-to", ts(end)] + codec_args + [outfile]
@@ -205,6 +211,9 @@ def eztrim(
 
     # --- multiple trims with concatenation ----------------------------------------------------------------------------
     starts, ends = _negative_to_positive(num_frames, [s for s, e in trims], [e for s, e in trims])
+    if TYPE_CHECKING:
+        assert isinstance(starts, list)
+        assert isinstance(ends, list)
     if not _check_ordered(starts, ends):
         raise ValueError("eztrim: the trims are not logical")
 
@@ -266,9 +275,9 @@ def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[str] = None,
         f += src_clip.num_frames
 
     if f == 0:
-        s = 0
+        s = 0.0
     elif src_clip.fps != fractions.Fraction(0, 1):
-        t = round(10 ** 9 * f * src_clip.fps ** -1)
+        t = round(float(10 ** 9 * f * src_clip.fps ** -1))
         s = t / 10 ** 9
     else:
         if timecodes_file is not None:
@@ -310,14 +319,16 @@ def clip_to_timecodes(src_clip: vs.VideoNode) -> Deque[float]:
         from rich.progress import track
         rich = True
     except ImportError:
-        track = lambda x, description, total: x
+        track = lambda x, description, total: x  # type: ignore
         rich = False
     # fmt: on
     timecodes = collections.deque([0.0], maxlen=src_clip.num_frames + 1)
     curr_time = fractions.Fraction()
     init_percentage = 0
     for frame in track(src_clip.frames(), description="Finding timestamps...", total=src_clip.num_frames):
-        curr_time += fractions.Fraction(frame.props["_DurationNum"], frame.props["_DurationDen"])
+        num = cast(int, frame.props["_DurationNum"])
+        den = cast(int, frame.props["_DurationDen"])
+        curr_time += fractions.Fraction(num, den)
         timecodes.append(float(curr_time))
         if rich:
             pass  # if ran in a normal console/terminal, should render a pretty progress bar
@@ -340,11 +351,17 @@ def _negative_to_positive(num_frames: int, a: _Neg2pos_in, b: _Neg2pos_in) -> _N
     # --- single trim --------------------------------------------------------------------------------------------------
     if single_trim:
         a, b = (a or 0), (b or 0)
+        if TYPE_CHECKING:
+            assert isinstance(a, int)
+            assert isinstance(b, int)
         if abs(a) > num_frames or abs(b) > num_frames:
             raise ValueError(f"_negative_to_positive: {max(abs(a), abs(b))} is out of bounds")
         return a if a >= 0 else num_frames + a, b if b > 0 else num_frames + b
 
     # --- multiple trims -----------------------------------------------------------------------------------------------
+    if TYPE_CHECKING:
+        assert isinstance(a, list)
+        assert isinstance(b, list)
     if len(a) != len(b):
         raise ValueError("_negative_to_positive: lists must be same length")
 
@@ -393,6 +410,8 @@ def concat(
     else:
         if not os.path.isfile(ffmpeg_path):
             raise FileNotFoundError(f"concat: ffmpeg executable at {ffmpeg_path} not found")
+    if TYPE_CHECKING:
+        assert isinstance(ffmpeg_path, str)
 
     # --- checking for filename issues and file extension support ------------------------------------------------------
     if len(audio_files) < 2:
