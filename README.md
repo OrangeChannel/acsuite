@@ -1,6 +1,9 @@
 # acsuite
 
-[![Documentation Status](https://readthedocs.org/projects/acsuite/badge/?version=latest)](https://acsuite.readthedocs.io/en/latest/?badge=latest) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Documentation Status](https://readthedocs.org/projects/acsuite/badge/?version=latest)](https://acsuite.readthedocs.io/en/latest/?badge=latest)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![PyPI version shields.io](https://img.shields.io/pypi/v/acsuite-orangechannel.svg)](https://pypi.python.org/pypi/acsuite-orangechannel/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/acsuite-orangechannel.svg)](https://pypi.python.org/pypi/acsuite-orangechannel/)
 
 audiocutter(.py) replacement for VapourSynth.
 
