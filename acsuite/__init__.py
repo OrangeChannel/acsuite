@@ -11,14 +11,14 @@ import functools
 import os
 from shutil import which
 from subprocess import run
-from typing import cast, Deque, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import cast, Optional, TYPE_CHECKING, Union
 from warnings import simplefilter, warn
 
 import vapoursynth as vs
 
 simplefilter("always")  # display warnings
 
-Trim = Tuple[Optional[int], Optional[int]]
+Trim = tuple[Optional[int], Optional[int]]
 
 # fmt: off
 VALID_FFMPEG_EXTENSIONS = [
@@ -45,7 +45,7 @@ VALID_FFMPEG_EXTENSIONS = [
 def eztrim(
     clip: vs.VideoNode,
     /,
-    trims: Union[List[Trim], Trim],
+    trims: Union[list[Trim], Trim],
     audio_file: str,
     outfile: Optional[str] = None,
     *,
@@ -53,7 +53,7 @@ def eztrim(
     quiet: bool = False,
     timecodes_file: Optional[str] = None,
     debug: bool = False,
-) -> Union[Dict, str]:
+) -> Union[dict, str]:
     """
     Simple trimming function that follows VapourSynth/Python slicing syntax.
 
@@ -302,7 +302,7 @@ def f2ts(f: int, /, *, precision: int = 3, timecodes_file: Optional[str] = None,
 
 
 @functools.lru_cache
-def clip_to_timecodes(src_clip: vs.VideoNode) -> Deque[float]:
+def clip_to_timecodes(src_clip: vs.VideoNode) -> collections.deque[float]:
     """
     Cached function to return a list of timecodes for vfr clips.
 
@@ -340,8 +340,8 @@ def clip_to_timecodes(src_clip: vs.VideoNode) -> Deque[float]:
     return timecodes
 
 
-_Neg2pos_in = Union[List[Optional[int]], Optional[int]]
-_Neg2pos_out = Union[Tuple[List[int], List[int]], Tuple[int, int]]
+_Neg2pos_in = Union[list[Optional[int]], Optional[int]]
+_Neg2pos_out = Union[tuple[list[int], list[int]], tuple[int, int]]
 
 
 def _negative_to_positive(num_frames: int, a: _Neg2pos_in, b: _Neg2pos_in) -> _Neg2pos_out:
@@ -379,7 +379,7 @@ def _negative_to_positive(num_frames: int, a: _Neg2pos_in, b: _Neg2pos_in) -> _N
     return positive_a, positive_b
 
 
-def _check_ordered(starts: List[int], ends: List[int]) -> bool:
+def _check_ordered(starts: list[int], ends: list[int]) -> bool:
     """Checks if lists follow logical Python slicing."""
     if not all(starts[i] < ends[i] for i in range(len(starts))):
         return False
@@ -389,8 +389,8 @@ def _check_ordered(starts: List[int], ends: List[int]) -> bool:
 
 
 def concat(
-    audio_files: List[str], outfile: str, *, ffmpeg_path: Optional[str] = None, quiet: bool = False, debug: bool = False
-) -> Optional[Dict]:
+    audio_files: list[str], outfile: str, *, ffmpeg_path: Optional[str] = None, quiet: bool = False, debug: bool = False
+) -> Optional[dict]:
     """Function to concatenate mutliple audio files.
 
     All audio files must have the same extension, and the outfile must have the same extension as the audio files.
