@@ -74,7 +74,7 @@ Returns a list of timecodes for VFR clips. Used as a fallback when *timecodes_fi
 
 ### Dependencies
 - [FFmpeg](https://ffmpeg.org/)
-- [VapourSynth R49+](https://github.com/vapoursynth/vapoursynth/releases)
+- [VapourSynth R53+](https://github.com/vapoursynth/vapoursynth/releases)
 
 ### Installing
 

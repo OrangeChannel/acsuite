@@ -33,7 +33,7 @@ setuptools.setup(
         "License :: Public Domain",
         "Natural Language :: English",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Multimedia :: Sound/Audio",
         "Typing :: Typed",
     ],
@@ -47,5 +47,5 @@ setuptools.setup(
     package_data={
         'acsuite': ['py.typed']
     },
-    python_requires='>=3.8',
+    python_requires='>=3.9',
 )
